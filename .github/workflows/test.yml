@@ -72,4 +72,6 @@ jobs:
         run: printf "%s" "${{ secrets.PUBLIC_KEY }}" > keys/public_key.pem
 
       - name: Run tests
-        run: make test_integration MODE=ci
+        run: | 
+          chmod +x ./run-integration.sh
+          make test_integration MODE=ci
