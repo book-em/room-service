@@ -72,4 +72,4 @@ jobs:
         run: printf "%s" "${{ secrets.PUBLIC_KEY }}" > keys/public_key.pem
 
       - name: Run tests
-        run: make test_integration
+        run: make test_integration MODE=ci
