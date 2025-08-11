@@ -1,0 +1,107 @@
+services:
+  test-runner:
+    build:
+      context: ${TEST_RUNNER_PATH}/src
+      dockerfile: test.Dockerfile
+    depends_on:
+      room-db:
+        condition: service_healthy
+      room-service:
+        condition: service_healthy
+      user-db:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    volumes:
+      - go-mod-cache:/go/pkg/mod
+
+  room-service:
+    build:
+      context: ${ROOM_SERVICE_PATH}/src
+      dockerfile: Dockerfile
+    image: room-service-test
+    ports:
+      - "${ROOM_SERVICE_PORT}:8080"
+    environment:
+      DB_HOST: room-db
+      DB_PORT: 5432
+      DB_NAME: bookem_roomdb_test
+      DB_USER: bookem_roomdb_user
+      DB_PASSWORD: testpass
+      JWT_PUBLIC_KEY_PATH: /app/keys/public_key.pem
+      ENABLE_TEST_MODE: "true"
+    depends_on:
+      room-db:
+        condition: service_healthy
+    volumes:
+      - ${ROOM_SERVICE_PATH}/keys/public_key.pem:/app/keys/public_key.pem:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider --tries=1 --no-verbose http://room-service:8080/healthz || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  room-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: bookem_roomdb_test
+      POSTGRES_USER: bookem_roomdb_user
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "${ROOM_SERVICE_DB_PORT}:5432"
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  user-service:
+    build:
+      context: ${USER_SERVICE_PATH}/src
+      dockerfile: Dockerfile
+    image: user-service-test
+    ports:
+      - "${USER_SERVICE_PORT}:8080"
+    environment:
+      DB_HOST: user-db
+      DB_PORT: 5432
+      DB_NAME: bookem_userdb_test
+      DB_USER: bookem_userdb_user
+      DB_PASSWORD: testpass
+      JWT_PRIVATE_KEY_PATH: /app/keys/private_key.key
+      JWT_PUBLIC_KEY_PATH: /app/keys/public_key.pem
+      ENABLE_TEST_MODE: "true"
+    depends_on:
+      user-db:
+        condition: service_healthy
+    volumes:
+      - ${USER_SERVICE_PATH}/keys/private_key.key:/app/keys/private_key.key:ro
+      - ${USER_SERVICE_PATH}/keys/public_key.pem:/app/keys/public_key.pem:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider --tries=1 --no-verbose http://user-service:8080/healthz || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  user-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: bookem_userdb_test
+      POSTGRES_USER: bookem_userdb_user
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "${USER_SERVICE_DB_PORT}:5432"
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  go-mod-cache:
