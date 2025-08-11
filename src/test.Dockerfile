@@ -13,6 +13,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o room-service .
 
-RUN chmod +x /app/scripts/wait-and-test.sh
+RUN chmod +x /app/util/wait-and-test.sh
 
-ENTRYPOINT ["/app/scripts/wait-and-test.sh"]
+ENTRYPOINT ["/app/util/wait-and-test.sh"]
