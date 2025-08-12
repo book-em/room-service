@@ -46,11 +46,6 @@ if [[ "$mode" == "ci" ]]; then
   git clone --branch "$USER_SERVICE_BRANCH" "$USER_SERVICE_REPO" "$USER_SERVICE_PATH"
 fi
 
-compose_env_args=()
-for file in "${ENV_FILES[@]}"; do
-  compose_env_args+=(--env-file "$file")
-done
-
 # Run integration tests
 
 docker compose "${compose_env_args[@]}" -f ./compose.integration.yml up --build --abort-on-container-exit --exit-code-from test-runner
