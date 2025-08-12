@@ -17,7 +17,7 @@ type userClient struct {
 
 func NewUserClient() UserClient {
 	return &userClient{
-		baseURL: "http://user-service:8080", // TODO: This should not be hardcoded
+		baseURL: "http://user-service:8080/api", // TODO: This should not be hardcoded
 	}
 }
 
@@ -32,10 +32,10 @@ func (c *userClient) FindById(id uint) (*UserDTO, error) {
 		return nil, err
 	}
 
-	var obj *UserDTO
-	if err := json.Unmarshal(bodyBytes, obj); err != nil {
+	var obj UserDTO
+	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
 		return nil, err
 	}
 
-	return obj, nil
+	return &obj, nil
 }
