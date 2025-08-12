@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bookem-room-service/client/userclient"
 	internal "bookem-room-service/internal"
 	"database/sql"
 	"fmt"
@@ -75,8 +76,10 @@ func main() {
 		ctx.JSON(http.StatusOK, nil)
 	})
 
+	userClient := userclient.NewUserClient()
+
 	repo := internal.NewRepository(dB)
-	service := internal.NewService(repo)
+	service := internal.NewService(repo, userClient)
 	handler := internal.NewHandler(service)
 	route := *internal.NewRoute(handler)
 

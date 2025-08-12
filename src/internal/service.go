@@ -1,27 +1,48 @@
 package internal
 
 import (
+	"bookem-room-service/client/userclient"
 	"bookem-room-service/util"
 	"fmt"
 	"log"
 )
 
 type Service interface {
-	Create(dto CreateRoomDTO) (*Room, error)
+	Create(callerID uint, dto CreateRoomDTO) (*Room, error)
 	FindById(id uint) (*Room, error)
 	FindByHost(hostId uint) ([]Room, error)
 }
 
 type service struct {
-	repo Repository
+	repo       Repository
+	userClient userclient.UserClient
 }
 
-func NewService(r Repository) Service {
-	return &service{r}
+func NewService(r Repository, userClient userclient.UserClient) Service {
+	return &service{r, userClient}
 }
 
-func (s *service) Create(dto CreateRoomDTO) (*Room, error) {
-	// First create the room without photos
+func (s *service) Create(callerID uint, dto CreateRoomDTO) (*Room, error) {
+	// Check if user exists.
+
+	caller, err := s.userClient.FindById(callerID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if user is host.
+
+	if caller.Role != string(userclient.Host) {
+		return nil, fmt.Errorf("Unauthorized (bad role)")
+	}
+
+	// User must be creating a room for himself.
+
+	if caller.Id != dto.HostID {
+		return nil, fmt.Errorf("Unauthorized (wrong user %d but caller is %d)", dto.HostID, caller.Id)
+	}
+
+	// First create the room without photos.
 
 	room := &Room{
 		HostID:      dto.HostID,
@@ -34,7 +55,7 @@ func (s *service) Create(dto CreateRoomDTO) (*Room, error) {
 		Commodities: dto.Commodities,
 	}
 
-	err := s.repo.Create(room)
+	err = s.repo.Create(room)
 	if err != nil {
 		return nil, err
 	}
