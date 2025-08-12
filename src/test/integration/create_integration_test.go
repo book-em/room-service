@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/client/userclient"
 	test "bookem-room-service/test/unit"
+	"bookem-room-service/util"
 	"fmt"
 	"testing"
 
@@ -12,8 +13,13 @@ import (
 func TestIntegration_Create_Success(t *testing.T) {
 	registerUser("user1", "1234", userclient.Host)
 	jwt := loginUser2("user1", "1234")
+	jwtObj, err := util.GetJwtFromString(jwt)
+	if err != nil {
+		panic(err)
+	}
 
 	dto := test.DefaultRoomCreateDTO
+	dto.HostID = jwtObj.ID
 	resp, err := createRoom(jwt, dto)
 	require.NoError(t, err)
 
