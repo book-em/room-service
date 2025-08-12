@@ -9,11 +9,11 @@ import (
 
 const IMG_DIRECTORY = "/app/images/" // Should this be a configurable variable?
 
-// / SaveImageB64 saves a b64 image with a MIME type onto permanent storage. /
-// Returns (full_path, relative_path, error) / `full_path` is the full path on
-// the device where the image was saved. / `relative_path` is the image path
-// relative to IMG_DIRECTORY, including / file name and extension.
-func SaveImageB64(base64Image string, filename string) (string, string, error) {
+// SaveImageB64 saves a b64 image with a MIME type onto permanent storage.
+// Returns (full_path, relative_path, error) `full_path` is the full path on the
+// device where the image was saved. `relative_path` is the image path relative
+// to IMG_DIRECTORY, including file name and extension.
+var SaveImageB64 = func(base64Image string, filename string) (string, string, error) {
 	// [1] Split payload
 
 	parts := strings.Split(base64Image, ",")
