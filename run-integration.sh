@@ -48,5 +48,5 @@ fi
 
 # Run integration tests
 
-docker compose "${compose_env_args[@]}" -f ./compose.integration.yml up --build --abort-on-container-exit --exit-code-from test-runner
-docker compose "${compose_env_args[@]}" -f ./compose.integration.yml down
+docker compose -f ./compose.integration.yml up --build --abort-on-container-exit --exit-code-from test-runner
+docker compose -f ./compose.integration.yml down
