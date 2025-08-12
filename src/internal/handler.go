@@ -43,7 +43,7 @@ func (h *Handler) createRoom(ctx *gin.Context) {
 		return
 	}
 
-	room, err := h.service.Create(dto)
+	room, err := h.service.Create(jwt.ID, dto)
 	if err != nil {
 		ctx.Error(err)
 		return

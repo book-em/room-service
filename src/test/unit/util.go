@@ -1,15 +1,17 @@
 package test
 
 import (
+	"bookem-room-service/client/userclient"
 	internal "bookem-room-service/internal"
 
 	mock "github.com/stretchr/testify/mock"
 )
 
-func createTestRoomService() (internal.Service, *MockRoomRepo) {
+func createTestRoomService() (internal.Service, *MockRoomRepo, *MockUserClient) {
 	mockRepo := new(MockRoomRepo)
-	svc := internal.NewService(mockRepo)
-	return svc, mockRepo
+	mockUserClient := new(MockUserClient)
+	svc := internal.NewService(mockRepo, mockUserClient)
+	return svc, mockRepo, mockUserClient
 }
 
 // ----------------------------------------------- Mock repo
@@ -45,6 +47,18 @@ func (r *MockRoomRepo) FindByHost(hostId uint) ([]internal.Room, error) {
 	return user, args.Error(1)
 }
 
+// ----------------------------------------------- Mock user client
+
+type MockUserClient struct {
+	mock.Mock
+}
+
+func (r *MockUserClient) FindById(id uint) (*userclient.UserDTO, error) {
+	args := r.Called(id)
+	user, _ := args.Get(0).(*userclient.UserDTO)
+	return user, args.Error(1)
+}
+
 // ----------------------------------------------- Mock data
 
 const (
@@ -53,7 +67,7 @@ const (
 
 var DefaultRoom = &internal.Room{
 	ID:     0,
-	HostID: 0,
+	HostID: 2,
 
 	Name:        "Room Name",
 	Description: "Room Desc",
@@ -84,4 +98,24 @@ var DefaultRoomCreateDTO = internal.CreateRoomDTO{
 	MaxGuests:     DefaultRoom.MaxGuests,
 	PhotosPayload: []string{SMALL_IMG},
 	Commodities:   DefaultRoom.Commodities,
+}
+
+var DefaultUser_Guest = &userclient.UserDTO{
+	Id:       1,
+	Username: "guser",
+	Email:    "gemail@mail.com",
+	Name:     "gname",
+	Surname:  "gsurname",
+	Role:     "guest",
+	Address:  "gAddress 123",
+}
+
+var DefaultUser_Host = &userclient.UserDTO{
+	Id:       2,
+	Username: "huser",
+	Email:    "hemail@mail.com",
+	Name:     "hname",
+	Surname:  "hsurname",
+	Role:     "host",
+	Address:  "hAddress 123",
 }
