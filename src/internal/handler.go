@@ -15,6 +15,12 @@ type Route struct{ handler Handler }
 
 func NewRoute(handler Handler) *Route { return &Route{handler} }
 
+func (r *Route) Route(rg *gin.RouterGroup) {
+	rg.POST("/new", r.handler.createRoom)
+	rg.GET("/:id", r.handler.findRoomById)
+	rg.GET("/host/:id", r.handler.findRoomByHostId)
+}
+
 type Handler struct{ service Service }
 
 func NewHandler(s Service) Handler { return Handler{s} }
@@ -65,7 +71,26 @@ func (h *Handler) findRoomById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, NewRoomDTO(room))
 }
 
-func (r *Route) Route(rg *gin.RouterGroup) {
-	rg.POST("/new", r.handler.createRoom)
-	rg.GET("/:id", r.handler.findRoomById)
+func (h *Handler) findRoomByHostId(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse ID: %s", err.Error())
+		ctx.Error(err)
+		return
+	}
+
+	log.Printf("Find room by id %d", id)
+
+	rooms, err := h.service.FindByHost(uint(id))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	result := make([]RoomDTO, 0)
+	for _, room := range rooms {
+		result = append(result, NewRoomDTO(&room))
+	}
+
+	ctx.JSON(http.StatusOK, result)
 }

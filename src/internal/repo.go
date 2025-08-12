@@ -9,6 +9,7 @@ type Repository interface {
 	Update(room *Room) error
 	Delete(room *Room) error
 	FindById(id uint) (*Room, error)
+	FindByHost(hostId uint) ([]Room, error)
 }
 
 type repository struct {
@@ -38,4 +39,13 @@ func (r *repository) FindById(id uint) (*Room, error) {
 		return nil, err
 	}
 	return &room, nil
+}
+
+func (r *repository) FindByHost(hostId uint) ([]Room, error) {
+	var rooms []Room
+	err := r.db.Where("host_id = ?", hostId).Find(&rooms).Error
+	if err != nil {
+		return nil, err
+	}
+	return rooms, nil
 }
