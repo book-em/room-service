@@ -12,8 +12,8 @@ import (
 func Test_Create_Success(t *testing.T) {
 	svc, mockRepo := createTestRoomService()
 
-	room := defaultRoom
-	dto := defaultRoomCreate
+	room := DefaultRoom
+	dto := DefaultRoomCreateDTO
 
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(nil)
 	mockRepo.On("Update", mock.AnythingOfType("*internal.Room")).Return(nil)
@@ -34,7 +34,7 @@ func Test_Create_Success(t *testing.T) {
 func Test_Create_InsertFailed(t *testing.T) {
 	svc, mockRepo := createTestRoomService()
 
-	dto := defaultRoomCreate
+	dto := DefaultRoomCreateDTO
 
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(fmt.Errorf("db error"))
 	roomGot, err := svc.Create(dto)
@@ -50,7 +50,7 @@ func Test_Create_InsertFailed(t *testing.T) {
 func Test_Create_ImageSaveFailed(t *testing.T) {
 	svc, mockRepo := createTestRoomService()
 
-	dto := defaultRoomCreate
+	dto := DefaultRoomCreateDTO
 
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(nil)
 	mockRepo.On("Delete", mock.AnythingOfType("*internal.Room")).Return(nil)
@@ -71,8 +71,8 @@ func Test_Create_ImageSaveFailed(t *testing.T) {
 func Test_Create_UpdateFailed(t *testing.T) {
 	svc, mockRepo := createTestRoomService()
 
-	room := defaultRoom
-	dto := defaultRoomCreate
+	room := DefaultRoom
+	dto := DefaultRoomCreateDTO
 
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(nil)
 	mockRepo.On("Update", mock.AnythingOfType("*internal.Room")).Return(fmt.Errorf("error"))

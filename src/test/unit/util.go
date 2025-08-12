@@ -47,7 +47,11 @@ func (r *MockRoomRepo) FindByHost(hostId uint) ([]internal.Room, error) {
 
 // ----------------------------------------------- Mock data
 
-var defaultRoom = &internal.Room{
+const (
+	SMALL_IMG = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q=="
+)
+
+var DefaultRoom = &internal.Room{
 	ID:     0,
 	HostID: 0,
 
@@ -56,28 +60,28 @@ var defaultRoom = &internal.Room{
 	Address:     "Room Address",
 	MinGuests:   1,
 	MaxGuests:   5,
-	Photos:      []string{"img-1.png"},
-	Commodities: []string{"test.png"},
+	Photos:      []string{"test.png"},
+	Commodities: []string{"WiFi"},
 }
 
-var defaultRoomDTO = internal.RoomDTO{
-	HostID:      defaultRoom.HostID,
-	Name:        defaultRoom.Name,
-	Description: defaultRoom.Description,
-	Address:     defaultRoom.Address,
-	MinGuests:   defaultRoom.MinGuests,
-	MaxGuests:   defaultRoom.MaxGuests,
-	Photos:      defaultRoom.Photos,
-	Commodities: defaultRoom.Commodities,
+var DefaultRoomDTO = internal.RoomDTO{
+	HostID:      DefaultRoom.HostID,
+	Name:        DefaultRoom.Name,
+	Description: DefaultRoom.Description,
+	Address:     DefaultRoom.Address,
+	MinGuests:   DefaultRoom.MinGuests,
+	MaxGuests:   DefaultRoom.MaxGuests,
+	Photos:      DefaultRoom.Photos,
+	Commodities: DefaultRoom.Commodities,
 }
 
-var defaultRoomCreate = internal.CreateRoomDTO{
-	HostID:        defaultRoom.HostID,
-	Name:          defaultRoom.Name,
-	Description:   defaultRoom.Description,
-	Address:       defaultRoom.Address,
-	MinGuests:     defaultRoom.MinGuests,
-	MaxGuests:     defaultRoom.MaxGuests,
-	PhotosPayload: []string{"some_base64_data_with_mime_type"},
-	Commodities:   defaultRoom.Commodities,
+var DefaultRoomCreateDTO = internal.CreateRoomDTO{
+	HostID:        DefaultRoom.HostID,
+	Name:          DefaultRoom.Name,
+	Description:   DefaultRoom.Description,
+	Address:       DefaultRoom.Address,
+	MinGuests:     DefaultRoom.MinGuests,
+	MaxGuests:     DefaultRoom.MaxGuests,
+	PhotosPayload: []string{SMALL_IMG},
+	Commodities:   DefaultRoom.Commodities,
 }
