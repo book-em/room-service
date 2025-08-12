@@ -9,6 +9,7 @@ import (
 type Service interface {
 	Create(dto CreateRoomDTO) (*Room, error)
 	FindById(id uint) (*Room, error)
+	FindByHost(hostId uint) ([]Room, error)
 }
 
 type service struct {
@@ -68,7 +69,15 @@ func (s *service) Create(dto CreateRoomDTO) (*Room, error) {
 func (s *service) FindById(id uint) (*Room, error) {
 	room, err := s.repo.FindById(id)
 	if err != nil {
-		return nil, fmt.Errorf("not found")
+		return nil, fmt.Errorf("room %d not found: %v", id, err)
 	}
 	return room, nil
+}
+
+func (s *service) FindByHost(hostId uint) ([]Room, error) {
+	rooms, err := s.repo.FindByHost(hostId)
+	if err != nil {
+		return nil, fmt.Errorf("rooms of host %d not found: %v", hostId, err)
+	}
+	return rooms, nil
 }
