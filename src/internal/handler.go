@@ -1,25 +1,71 @@
 package internal
 
 import (
+	"bookem-room-service/client/userclient"
+	"bookem-room-service/util"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
-	service Service
+type Route struct{ handler Handler }
+
+func NewRoute(handler Handler) *Route { return &Route{handler} }
+
+type Handler struct{ service Service }
+
+func NewHandler(s Service) Handler { return Handler{s} }
+
+func (h *Handler) createRoom(ctx *gin.Context) {
+	jwt, err := util.GetJwt(ctx)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	if jwt.Role != userclient.Host {
+		ctx.Error(fmt.Errorf("Unauthorized"))
+		return
+	}
+
+	var dto CreateRoomDTO
+	if err := ctx.ShouldBindJSON(&dto); err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	room, err := h.service.Create(dto)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, NewRoomDTO(room))
 }
 
-func NewHandler(s Service) Handler {
-	return Handler{s}
-}
+func (h *Handler) findRoomById(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse ID: %s", err.Error())
+		ctx.Error(err)
+		return
+	}
 
-type Route struct {
-	handler Handler
-}
+	log.Printf("Find room by id %d", id)
 
-func NewRoute(handler Handler) *Route {
-	return &Route{handler}
+	room, err := h.service.FindById(uint(id))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, NewRoomDTO(room))
 }
 
 func (r *Route) Route(rg *gin.RouterGroup) {
-
+	rg.POST("/new", r.handler.createRoom)
+	rg.GET("/:id", r.handler.findRoomById)
 }
