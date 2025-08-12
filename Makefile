@@ -8,7 +8,7 @@
 #
 
 run:
-	echo "Run using room/"
+	echo "Run using infrastructure/"
 
 test: test_integration
 
