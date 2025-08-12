@@ -44,6 +44,9 @@ done
 if [[ "$mode" == "ci" ]]; then
   echo "Cloning $USER_SERVICE_REPO branch $USER_SERVICE_BRANCH into $USER_SERVICE_PATH"
   git clone --branch "$USER_SERVICE_BRANCH" "$USER_SERVICE_REPO" "$USER_SERVICE_PATH"
+
+  echo "Extracting the test private key for $USER_SERVICE_REPO"
+  tar -xvzf "$USER_SERVICE_PATH/keys/keys.tar.gz" -C "$USER_SERVICE_PATH/keys"
 fi
 
 # Run integration tests
