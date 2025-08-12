@@ -23,6 +23,10 @@ var (
 	rawDB  *sql.DB
 )
 
+func syncDatabase() {
+	dB.AutoMigrate(&internal.Room{})
+}
+
 func connectToDb() {
 	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
@@ -49,6 +53,7 @@ func connectToDb() {
 func main() {
 	connectToDb()
 	defer rawDB.Close()
+	syncDatabase()
 
 	server = gin.Default()
 
