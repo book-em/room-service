@@ -41,7 +41,7 @@ func (s *service) Create(dto CreateRoomDTO) (*Room, error) {
 
 	// Then add the photos (because we want deterministic filenames, so we need the ID).
 
-	var photos []string
+	var photos = make([]string, 0)
 	for _, imageBase64 := range dto.PhotosPayload {
 		imgFname := fmt.Sprintf("room-%d-%d", room.ID, len(photos))
 		_, path, err := util.SaveImageB64(imageBase64, imgFname)
@@ -58,7 +58,7 @@ func (s *service) Create(dto CreateRoomDTO) (*Room, error) {
 	room.Photos = photos
 	err = s.repo.Update(room)
 	if err != nil {
-		log.Printf("Could update room with images: %v", err)
+		log.Printf("Could not update room with images: %v", err)
 		s.repo.Delete(room)
 		return nil, err
 	}
