@@ -119,7 +119,7 @@ func (s *service) FindByHost(hostId uint) ([]Room, error) {
 	rooms, err := s.repo.FindByHost(hostId)
 
 	if err != nil {
-		log.Printf(err.Error())
+		log.Printf("%s", err.Error())
 		return nil, ErrNotFound("rooms of host", hostId)
 	}
 	return rooms, nil
