@@ -39,13 +39,13 @@ func (c *userClient) FindById(id uint) (*UserDTO, error) {
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("Parsing response error: %v", id, err)
+		log.Printf("Parsing response error: %v", err)
 		return nil, err
 	}
 
 	var obj UserDTO
 	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
-		log.Printf("JSON Unmarshall error: %v", id, err)
+		log.Printf("JSON Unmarshall error: %v", err)
 		return nil, err
 	}
 
