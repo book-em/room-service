@@ -96,7 +96,23 @@ func (s *service) FindById(id uint) (*Room, error) {
 }
 
 func (s *service) FindByHost(hostId uint) ([]Room, error) {
+	// Check if user exists.
+
+	host, err := s.userClient.FindById(hostId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if user is host.
+
+	if host.Role != string(userclient.Host) {
+		return nil, fmt.Errorf("user %d is not host", hostId)
+	}
+
+	// Fetch rooms.
+
 	rooms, err := s.repo.FindByHost(hostId)
+
 	if err != nil {
 		return nil, fmt.Errorf("rooms of host %d not found: %v", hostId, err)
 	}
