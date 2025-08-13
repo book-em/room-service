@@ -3,7 +3,6 @@ package internal
 import (
 	"bookem-room-service/client/userclient"
 	"bookem-room-service/util"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,7 +17,7 @@ func NewRoute(handler Handler) *Route { return &Route{handler} }
 func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.POST("/new", r.handler.createRoom)
 	rg.GET("/:id", r.handler.findRoomById)
-	rg.GET("/host/:id", r.handler.findRoomByHostId)
+	rg.GET("/host/:id", r.handler.findRoomsByHostId)
 }
 
 type Handler struct{ service Service }
@@ -28,25 +27,21 @@ func NewHandler(s Service) Handler { return Handler{s} }
 func (h *Handler) createRoom(ctx *gin.Context) {
 	jwt, err := util.GetJwt(ctx)
 	if err != nil {
-		ctx.Error(err)
-		return
+		AbortError(ctx, err)
 	}
 
 	if jwt.Role != userclient.Host {
-		ctx.Error(fmt.Errorf("Unauthorized"))
-		return
+		AbortError(ctx, ErrUnauthorized)
 	}
 
 	var dto CreateRoomDTO
 	if err := ctx.ShouldBindJSON(&dto); err != nil {
-		ctx.Error(err)
-		return
+		AbortError(ctx, err)
 	}
 
 	room, err := h.service.Create(jwt.ID, dto)
 	if err != nil {
-		ctx.Error(err)
-		return
+		AbortError(ctx, err)
 	}
 
 	ctx.JSON(http.StatusCreated, NewRoomDTO(room))
@@ -55,36 +50,29 @@ func (h *Handler) createRoom(ctx *gin.Context) {
 func (h *Handler) findRoomById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		log.Printf("Could not parse ID: %s", err.Error())
-		ctx.Error(err)
-		return
+		AbortError(ctx, &APIError{Code: http.StatusBadRequest, Message: "Could not parse ID"})
 	}
 
 	log.Printf("Find room by id %d", id)
 
 	room, err := h.service.FindById(uint(id))
 	if err != nil {
-		ctx.Error(err)
-		return
+		AbortError(ctx, err)
 	}
 
 	ctx.JSON(http.StatusOK, NewRoomDTO(room))
 }
 
-func (h *Handler) findRoomByHostId(ctx *gin.Context) {
+func (h *Handler) findRoomsByHostId(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		log.Printf("Could not parse ID: %s", err.Error())
-		ctx.Error(err)
-		return
+		AbortError(ctx, ErrBadRequest)
 	}
-
-	log.Printf("Find room by id %d", id)
 
 	rooms, err := h.service.FindByHost(uint(id))
 	if err != nil {
-		ctx.Error(err)
-		return
+		AbortError(ctx, err)
 	}
 
 	result := make([]RoomDTO, 0)

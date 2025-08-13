@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/client/userclient"
 	test "bookem-room-service/test/unit"
+	"bookem-room-service/util"
 	"net/http"
 	"testing"
 
@@ -12,7 +13,12 @@ import (
 func TestIntegration_FindById_Success(t *testing.T) {
 	registerUser("user2", "1234", userclient.Host)
 	jwt := loginUser2("user2", "1234")
-	resp, _ := createRoom(jwt, test.DefaultRoomCreateDTO)
+	jwtObj, _ := util.GetJwtFromString(jwt)
+
+	roomCreateDTO := test.DefaultRoomCreateDTO
+	roomCreateDTO.HostID = jwtObj.ID
+
+	resp, _ := createRoom(jwt, roomCreateDTO)
 	room := responseToRoom(resp)
 
 	roomId := room.ID
@@ -30,5 +36,5 @@ func TestIntegration_FindById_MissingId(t *testing.T) {
 	resp, err := http.Get(URL_room)
 
 	require.NoError(t, err)
-	require.Equal(t, 400, resp.StatusCode)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 }

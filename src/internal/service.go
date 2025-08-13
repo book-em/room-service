@@ -33,13 +33,15 @@ func (s *service) Create(callerID uint, dto CreateRoomDTO) (*Room, error) {
 	// Check if user is host.
 
 	if caller.Role != string(userclient.Host) {
-		return nil, fmt.Errorf("Unauthorized (bad role)")
+		log.Printf("Unauthorized (bad role %s)", caller.Role)
+		return nil, ErrUnauthorized
 	}
 
 	// User must be creating a room for himself.
 
 	if caller.Id != dto.HostID {
-		return nil, fmt.Errorf("Unauthorized (wrong user %d but caller is %d)", dto.HostID, caller.Id)
+		log.Printf("Unauthorized (wrong user %d but caller is %d)", dto.HostID, caller.Id)
+		return nil, ErrUnauthorized
 	}
 
 	// First create the room without photos.
@@ -90,23 +92,26 @@ func (s *service) Create(callerID uint, dto CreateRoomDTO) (*Room, error) {
 func (s *service) FindById(id uint) (*Room, error) {
 	room, err := s.repo.FindById(id)
 	if err != nil {
-		return nil, fmt.Errorf("room %d not found: %v", id, err)
+		return nil, ErrNotFound("room", id)
 	}
 	return room, nil
 }
 
 func (s *service) FindByHost(hostId uint) ([]Room, error) {
+	log.Printf("Find rooms by host %d", hostId)
+
 	// Check if user exists.
 
 	host, err := s.userClient.FindById(hostId)
 	if err != nil {
-		return nil, err
+		return nil, ErrNotFound("host", hostId)
 	}
 
 	// Check if user is host.
 
 	if host.Role != string(userclient.Host) {
-		return nil, fmt.Errorf("user %d is not host", hostId)
+		log.Printf("Unauthorized (user %d is not host)", hostId)
+		return nil, ErrUnauthorized
 	}
 
 	// Fetch rooms.
@@ -114,7 +119,8 @@ func (s *service) FindByHost(hostId uint) ([]Room, error) {
 	rooms, err := s.repo.FindByHost(hostId)
 
 	if err != nil {
-		return nil, fmt.Errorf("rooms of host %d not found: %v", hostId, err)
+		log.Printf(err.Error())
+		return nil, ErrNotFound("rooms of host", hostId)
 	}
 	return rooms, nil
 }
