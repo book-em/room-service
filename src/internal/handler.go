@@ -28,29 +28,36 @@ func (h *Handler) createRoom(ctx *gin.Context) {
 	jwt, err := util.GetJwt(ctx)
 	if err != nil {
 		AbortError(ctx, err)
+		return
 	}
 
 	if jwt.Role != userclient.Host {
 		AbortError(ctx, ErrUnauthorized)
+		return
 	}
 
 	var dto CreateRoomDTO
 	if err := ctx.ShouldBindJSON(&dto); err != nil {
 		AbortError(ctx, err)
+		return
 	}
 
 	room, err := h.service.Create(jwt.ID, dto)
 	if err != nil {
 		AbortError(ctx, err)
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, NewRoomDTO(room))
 }
 
 func (h *Handler) findRoomById(ctx *gin.Context) {
+	log.Printf("findRoomById called")
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		AbortError(ctx, &APIError{Code: http.StatusBadRequest, Message: "Could not parse ID"})
+		log.Printf("Could not parse ID %s: %s", ctx.Param("id"), err.Error())
+		AbortError(ctx, ErrBadRequest)
+		return
 	}
 
 	log.Printf("Find room by id %d", id)
@@ -58,21 +65,26 @@ func (h *Handler) findRoomById(ctx *gin.Context) {
 	room, err := h.service.FindById(uint(id))
 	if err != nil {
 		AbortError(ctx, err)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, NewRoomDTO(room))
 }
 
 func (h *Handler) findRoomsByHostId(ctx *gin.Context) {
+	log.Printf("findRoomsByHostId called")
+
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		log.Printf("Could not parse ID: %s", err.Error())
+		log.Printf("Could not parse ID %s: %s", ctx.Param("id"), err.Error())
 		AbortError(ctx, ErrBadRequest)
+		return
 	}
 
 	rooms, err := h.service.FindByHost(uint(id))
 	if err != nil {
 		AbortError(ctx, err)
+		return
 	}
 
 	result := make([]RoomDTO, 0)
