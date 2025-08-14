@@ -5,6 +5,7 @@ import (
 	"bookem-room-service/util"
 	"fmt"
 	"log"
+	"time"
 )
 
 type Service interface {
@@ -14,12 +15,17 @@ type Service interface {
 }
 
 type service struct {
-	repo       Repository
+	repo            Repository
+	availabiltyRepo RoomAvailabilityRepo
+
 	userClient userclient.UserClient
 }
 
-func NewService(r Repository, userClient userclient.UserClient) Service {
-	return &service{r, userClient}
+func NewService(
+	roomRepo Repository,
+	availabiltyRepo RoomAvailabilityRepo,
+	userClient userclient.UserClient) Service {
+	return &service{roomRepo, availabiltyRepo, userClient}
 }
 
 func (s *service) Create(callerID uint, dto CreateRoomDTO) (*Room, error) {
