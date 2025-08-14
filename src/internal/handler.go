@@ -18,6 +18,11 @@ func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.POST("/new", r.handler.createRoom)
 	rg.GET("/:id", r.handler.findRoomById)
 	rg.GET("/host/:id", r.handler.findRoomsByHostId)
+
+	rg.GET("/available/room/:id", r.handler.findCurrentAvailabilityListOfRoom)
+	rg.GET("/available/room/all/:id", r.handler.findAvailabilityListsByRoomId)
+	rg.GET("/available/:id", r.handler.findAvailabilityListById)
+	rg.POST("/available", r.handler.updateAvailability)
 }
 
 type Handler struct{ service Service }
@@ -93,4 +98,88 @@ func (h *Handler) findRoomsByHostId(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, result)
+}
+
+func (h *Handler) findCurrentAvailabilityListOfRoom(ctx *gin.Context) {
+	roomId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse ID %s: %s", ctx.Param("id"), err.Error())
+		AbortError(ctx, ErrBadRequest)
+		return
+	}
+
+	list, err := h.service.FindCurrentAvailabilityListOfRoom(uint(roomId))
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	result := NewRoomAvailabilityListDTO(list)
+	ctx.JSON(http.StatusOK, result)
+}
+
+func (h *Handler) findAvailabilityListsByRoomId(ctx *gin.Context) {
+	roomId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse ID %s: %s", ctx.Param("id"), err.Error())
+		AbortError(ctx, ErrBadRequest)
+		return
+	}
+
+	lists, err := h.service.FindAvailabilityListsByRoomId(uint(roomId))
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	result := make([]RoomAvailabilityListDTO, 0)
+	for _, list := range lists {
+		result = append(result, NewRoomAvailabilityListDTO(&list))
+	}
+	ctx.JSON(http.StatusOK, result)
+}
+
+func (h *Handler) findAvailabilityListById(ctx *gin.Context) {
+	listId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse ID %s: %s", ctx.Param("id"), err.Error())
+		AbortError(ctx, ErrBadRequest)
+		return
+	}
+
+	list, err := h.service.FindAvailabilityListById(uint(listId))
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	result := NewRoomAvailabilityListDTO(list)
+	ctx.JSON(http.StatusOK, result)
+}
+
+func (h *Handler) updateAvailability(ctx *gin.Context) {
+	jwt, err := util.GetJwt(ctx)
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	if jwt.Role != userclient.Host {
+		AbortError(ctx, ErrUnauthorized)
+		return
+	}
+
+	var dto CreateRoomAvailabilityListDTO
+	if err := ctx.ShouldBindJSON(&dto); err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	list, err := h.service.UpdateAvailability(jwt.ID, dto)
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, NewRoomAvailabilityListDTO(list))
 }
