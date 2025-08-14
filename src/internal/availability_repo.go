@@ -15,13 +15,19 @@ type roomAvailabilityRepo struct{ db *gorm.DB }
 func NewRoomAvailabilityRepo(db *gorm.DB) RoomAvailabilityRepo { return &roomAvailabilityRepo{db} }
 
 func (r *roomAvailabilityRepo) CreateList(availList *RoomAvailabilityList) error {
-	if err := r.db.Create(availList).Error; err != nil {
-		return err
-	}
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(availList).Error; err != nil {
+			return err
+		}
 
-	return r.db.Model(&Room{}).
-		Where("id = ?", availList.RoomID).
-		Update("availability_list_id", availList.ID).Error
+		if err := tx.Model(&Room{}).
+			Where("id = ?", availList.RoomID).
+			Update("availability_list_id", availList.ID).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func (r *roomAvailabilityRepo) FindListById(id uint) (*RoomAvailabilityList, error) {
