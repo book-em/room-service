@@ -29,17 +29,17 @@ type RoomAvailabilityList struct {
 	ID            uint                   `gorm:"primaryKey"`
 	RoomID        uint                   `gorm:"not null;index"`
 	Room          Room                   `gorm:"constraint:OnDelete:CASCADE"`
+	EffectiveFrom time.Time              ``
 	Items         []RoomAvailabilityItem `gorm:"constraint:OnDelete:CASCADE"`
-	EffectiveFrom time.Time
 }
 
 // RoomAvailabilityItem defines a date range when a room is available (or not available).
 type RoomAvailabilityItem struct {
 	gorm.Model
-	ID                 uint `gorm:"primaryKey"`
-	AvailabilityListID uint `gorm:"not null;index"`
-	DateFrom           time.Time
-	DateTo             time.Time
+	ID                 uint      `gorm:"primaryKey"`
+	AvailabilityListID uint      `gorm:"not null;index"`
+	DateFrom           time.Time ``
+	DateTo             time.Time ``
 
 	// Available determines if this item works as a "union" or a "disjoint".
 	// When true, the owning room availability list is expanded by this date
