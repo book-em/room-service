@@ -17,7 +17,7 @@ const URL_room = "http://room-service:8080/api/"
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-func genName(length int) string {
+func GenName(length int) string {
 	b := make([]rune, length)
 	for i := range b {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
@@ -25,7 +25,7 @@ func genName(length int) string {
 	return string(b)
 }
 
-func registerUser(username_or_email string, password string, role userclient.UserRole) (*http.Response, error) {
+func RegisterUser(username_or_email string, password string, role userclient.UserRole) (*http.Response, error) {
 	username := username_or_email
 	email := username + "@gmail.com"
 
@@ -39,9 +39,9 @@ func registerUser(username_or_email string, password string, role userclient.Use
 		Password: password,
 		Email:    email,
 		Role:     string(role),
-		Name:     genName(6),
-		Surname:  genName(6),
-		Address:  genName(10),
+		Name:     GenName(6),
+		Surname:  GenName(6),
+		Address:  GenName(10),
 	}
 
 	jsonBytes, err := json.Marshal(dto)
@@ -53,7 +53,7 @@ func registerUser(username_or_email string, password string, role userclient.Use
 	return resp, err
 }
 
-func loginUser(username_or_email string, password string) (*http.Response, error) {
+func LoginUser(username_or_email string, password string) (*http.Response, error) {
 	dto := userclient.LoginDTO{
 		UsernameOrEmail: username_or_email,
 		Password:        password,
@@ -68,8 +68,8 @@ func loginUser(username_or_email string, password string) (*http.Response, error
 	return resp, err
 }
 
-func loginUser2(username_or_email string, password string) string {
-	resp, _ := loginUser(username_or_email, password)
+func LoginUser2(username_or_email string, password string) string {
+	resp, _ := LoginUser(username_or_email, password)
 
 	defer resp.Body.Close()
 
@@ -86,7 +86,7 @@ func loginUser2(username_or_email string, password string) string {
 	return token.Jwt
 }
 
-func createRoom(jwt string, dto internal.CreateRoomDTO) (*http.Response, error) {
+func CreateRoom(jwt string, dto internal.CreateRoomDTO) (*http.Response, error) {
 	jsonBytes, err := json.Marshal(dto)
 	if err != nil {
 		return nil, err
@@ -100,17 +100,17 @@ func createRoom(jwt string, dto internal.CreateRoomDTO) (*http.Response, error) 
 	return http.DefaultClient.Do(req)
 }
 
-func findRoomById(id uint) (*http.Response, error) {
+func FindRoomById(id uint) (*http.Response, error) {
 	resp, err := http.Get(fmt.Sprintf("%s%d", URL_room, id)) // No forward slash between them, it's in `URL`
 	return resp, err
 }
 
-func findRoomsByHostId(hostId uint) (*http.Response, error) {
+func FindRoomsByHostId(hostId uint) (*http.Response, error) {
 	resp, err := http.Get(fmt.Sprintf("%shost/%d", URL_room, hostId)) // No forward slash between them, it's in `URL`
 	return resp, err
 }
 
-func responseToRoom(resp *http.Response) internal.RoomDTO {
+func ResponseToRoom(resp *http.Response) internal.RoomDTO {
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(fmt.Sprintf("failed to read response body: %v", err))
@@ -125,13 +125,70 @@ func responseToRoom(resp *http.Response) internal.RoomDTO {
 	return obj
 }
 
-func responseToRooms(resp *http.Response) []internal.RoomDTO {
+func ResponseToRooms(resp *http.Response) []internal.RoomDTO {
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(fmt.Sprintf("failed to read response body: %v", err))
 	}
 
 	var obj []internal.RoomDTO
+	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal: %v", err))
+	}
+
+	return obj
+}
+
+func CreateRoomAvailability(jwt string, dto internal.CreateRoomAvailabilityListDTO) (*http.Response, error) {
+	jsonBytes, err := json.Marshal(dto)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, URL_room+"available", bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+jwt)
+	return http.DefaultClient.Do(req)
+}
+
+func ResponseToRoomAvailability(resp *http.Response) internal.RoomAvailabilityListDTO {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read response body: %v", err))
+	}
+
+	var obj internal.RoomAvailabilityListDTO
+	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal: %v", err))
+	}
+
+	return obj
+}
+
+func FindCurrentAvailabilityListOfRoom(roomId uint) (*http.Response, error) {
+	resp, err := http.Get(fmt.Sprintf("%savailable/room/%d", URL_room, roomId))
+	return resp, err
+}
+
+func FindAvailabilityListsByRoomId(roomId uint) (*http.Response, error) {
+	resp, err := http.Get(fmt.Sprintf("%savailable/room/all/%d", URL_room, roomId))
+	return resp, err
+}
+
+func FindAvailabilityListById(id uint) (*http.Response, error) {
+	resp, err := http.Get(fmt.Sprintf("%savailable/%d", URL_room, id))
+	return resp, err
+}
+
+func ResponseToRoomAvailabilityLists(resp *http.Response) []internal.RoomAvailabilityListDTO {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read response body: %v", err))
+	}
+
+	var obj []internal.RoomAvailabilityListDTO
 	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal: %v", err))
 	}
