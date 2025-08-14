@@ -11,22 +11,22 @@ import (
 )
 
 func TestIntegration_FindById_Success(t *testing.T) {
-	registerUser("user2", "1234", userclient.Host)
-	jwt := loginUser2("user2", "1234")
+	RegisterUser("user2", "1234", userclient.Host)
+	jwt := LoginUser2("user2", "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 
 	roomCreateDTO := test.DefaultRoomCreateDTO
 	roomCreateDTO.HostID = jwtObj.ID
 
-	resp, _ := createRoom(jwt, roomCreateDTO)
-	room := responseToRoom(resp)
+	resp, _ := CreateRoom(jwt, roomCreateDTO)
+	room := ResponseToRoom(resp)
 
 	roomId := room.ID
 
-	resp, err := findRoomById(roomId)
+	resp, err := FindRoomById(roomId)
 
 	require.NoError(t, err)
-	roomGot := responseToRoom(resp)
+	roomGot := ResponseToRoom(resp)
 
 	require.Equal(t, roomId, roomGot.ID)
 	require.Equal(t, room, roomGot)
