@@ -24,6 +24,13 @@ func ErrNotFound(resourceName string, id uint) *APIError {
 	}
 }
 
+func ErrBadRequestCustom(msg string) *APIError {
+	return &APIError{
+		Code:    http.StatusBadRequest,
+		Message: msg,
+	}
+}
+
 var (
 	ErrUnauthorized = &APIError{Code: http.StatusUnauthorized, Message: "Unauthorized"}
 	ErrBadRequest   = &APIError{Code: http.StatusBadRequest, Message: "Bad request"}
