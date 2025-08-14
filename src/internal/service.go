@@ -12,6 +12,11 @@ type Service interface {
 	Create(callerID uint, dto CreateRoomDTO) (*Room, error)
 	FindById(id uint) (*Room, error)
 	FindByHost(hostId uint) ([]Room, error)
+
+	FindAvailabilityListById(id uint) (*RoomAvailabilityList, error)
+	FindAvailabilityListsByRoomId(roomId uint) ([]RoomAvailabilityList, error)
+	FindCurrentAvailabilityListOfRoom(roomId uint) (*RoomAvailabilityList, error)
+	UpdateAvailability(callerID uint, dto CreateRoomAvailabilityListDTO) (*RoomAvailabilityList, error)
 }
 
 type service struct {
@@ -129,4 +134,96 @@ func (s *service) FindByHost(hostId uint) ([]Room, error) {
 		return nil, ErrNotFound("rooms of host", hostId)
 	}
 	return rooms, nil
+}
+
+func (s *service) FindAvailabilityListById(id uint) (*RoomAvailabilityList, error) {
+	li, err := s.availabiltyRepo.FindListById(id)
+	if err != nil {
+		return nil, ErrNotFound("room availability list", id)
+	}
+	return li, err
+}
+
+func (s *service) FindAvailabilityListsByRoomId(roomId uint) ([]RoomAvailabilityList, error) {
+	lists, err := s.availabiltyRepo.FindListsByRoomId(roomId)
+	if err != nil {
+		return nil, ErrNotFound("room availability lists", roomId)
+	}
+	return lists, err
+}
+
+func (s *service) FindCurrentAvailabilityListOfRoom(roomId uint) (*RoomAvailabilityList, error) {
+	li, err := s.availabiltyRepo.FindCurrentListOfRoom(roomId)
+	if err != nil {
+		return nil, ErrNotFound("room availability list", roomId)
+	}
+	return li, err
+}
+
+func (s *service) UpdateAvailability(callerID uint, dto CreateRoomAvailabilityListDTO) (*RoomAvailabilityList, error) {
+	// Idea:
+	//
+	// Each list is read-only, when you change it, you're actually creating a new one.
+	// Our API allows modifying a list by giving it the entire array of items.
+	// So this method does both updating and deleting.
+
+	log.Printf("[1] User exists")
+
+	caller, err := s.userClient.FindById(callerID)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[2] User is host")
+
+	if caller.Role != string(userclient.Host) {
+		log.Printf("Unauthorized (bad role %s)", caller.Role)
+		return nil, ErrUnauthorized
+	}
+
+	log.Printf("[3] Room exists")
+
+	room, err := s.FindById(dto.RoomID)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[4] Host owns the room")
+
+	if room.HostID != callerID {
+		return nil, ErrUnauthorized
+	}
+
+	log.Printf("[5] Create availability list")
+
+	newList := RoomAvailabilityList{
+		RoomID:        dto.RoomID,
+		EffectiveFrom: time.Now(),
+		Items:         make([]RoomAvailabilityItem, 0, len(dto.Items)),
+	}
+
+	log.Printf("[6] Validate and create availability list items")
+
+	for _, item := range dto.Items {
+		if item.DateFrom.After(item.DateTo) {
+			log.Printf("invalid date range: %v > %v", item.DateFrom, item.DateTo)
+
+			return nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", item.DateFrom, item.DateTo))
+		}
+
+		newList.Items = append(newList.Items, RoomAvailabilityItem{
+			DateFrom:  item.DateFrom,
+			DateTo:    item.DateTo,
+			Available: item.Available,
+		})
+	}
+
+	log.Printf("[7] Save availability list to DB")
+
+	err = s.availabiltyRepo.CreateList(&newList)
+	if err != nil {
+		return nil, err
+	}
+
+	return &newList, nil
 }
