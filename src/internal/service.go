@@ -145,6 +145,11 @@ func (s *service) FindAvailabilityListById(id uint) (*RoomAvailabilityList, erro
 }
 
 func (s *service) FindAvailabilityListsByRoomId(roomId uint) ([]RoomAvailabilityList, error) {
+	_, err := s.FindById(roomId)
+	if err != nil {
+		return nil, ErrNotFound("room", roomId)
+	}
+
 	lists, err := s.availabiltyRepo.FindListsByRoomId(roomId)
 	if err != nil {
 		return nil, ErrNotFound("room availability lists", roomId)
