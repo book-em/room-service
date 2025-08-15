@@ -133,6 +133,29 @@ func Test_UpdateAvailability_BadDateRange(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+func Test_UpdateAvailability_DuplicateDateRange(t *testing.T) {
+	svc, mockRepo, _, mockUserClient := CreateTestRoomService()
+
+	dto := internal.CreateRoomAvailabilityListDTO{
+		RoomID: DefaultRoom.ID,
+		Items:  []internal.CreateRoomAvailabilityItemDTO{DefaultCreateAvailabilityItemDTO, DefaultCreateAvailabilityItemDTO},
+	}
+
+	user := DefaultUser_Host
+	room := DefaultRoom
+	room.HostID = user.Id
+
+	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
+
+	got, err := svc.UpdateAvailability(user.Id, dto)
+
+	assert.Error(t, err)
+	assert.Nil(t, got)
+	mockUserClient.AssertExpectations(t)
+	mockRepo.AssertExpectations(t)
+}
+
 func Test_UpdateAvailability_DBError(t *testing.T) {
 	svc, mockRepo, mockAvailRepo, mockUserClient := CreateTestRoomService()
 
