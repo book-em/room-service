@@ -51,6 +51,7 @@ func (r *roomAvailabilityRepo) FindListsByRoomId(roomId uint) ([]RoomAvailabilit
 func (r *roomAvailabilityRepo) FindCurrentListOfRoom(roomId uint) (*RoomAvailabilityList, error) {
 	var latest RoomAvailabilityList
 	err := r.db.
+		Preload("Items").
 		Where("room_id = ?", roomId).
 		Order("effective_from DESC").
 		First(&latest).Error
