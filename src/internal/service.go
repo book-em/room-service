@@ -209,11 +209,28 @@ func (s *service) UpdateAvailability(callerID uint, dto CreateRoomAvailabilityLi
 
 	log.Printf("[6] Validate and create availability list items")
 
-	for _, item := range dto.Items {
-		if item.DateFrom.After(item.DateTo) {
-			log.Printf("invalid date range: %v > %v", item.DateFrom, item.DateTo)
+	for i, item := range dto.Items {
+		from := util.ClearYear(item.DateFrom)
+		to := util.ClearYear(item.DateTo)
 
-			return nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", item.DateFrom, item.DateTo))
+		if from.After(to) {
+			log.Printf("invalid date range: %v > %v", from, to)
+
+			return nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", from, to))
+		}
+
+		// This loop could be optimized.
+		for j, item2 := range dto.Items {
+			if i == j {
+				continue
+			}
+
+			from2 := util.ClearYear(item2.DateFrom)
+			to2 := util.ClearYear(item2.DateTo)
+
+			if from == from2 && to == to2 {
+				return nil, ErrBadRequestCustom(fmt.Sprintf("duplicate availability rule at index %d and %d", i, j))
+			}
 		}
 
 		newList.Items = append(newList.Items, RoomAvailabilityItem{
