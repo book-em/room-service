@@ -2,19 +2,16 @@ package internal
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Room struct {
-	gorm.Model
 	ID          uint     `gorm:"primaryKey"`
-	HostID      uint     ``
+	HostID      uint     `gorm:"not null"`
 	Name        string   `gorm:"type:varchar(50);not null"`
 	Description string   ``
 	Address     string   `gorm:"type:varchar(150);not null"`
-	MinGuests   uint     ``
-	MaxGuests   uint     ``
+	MinGuests   uint     `gorm:"not null"`
+	MaxGuests   uint     `gorm:"not null"`
 	Photos      []string `gorm:"type:text;serializer:json"`
 	Commodities []string `gorm:"type:text;serializer:json"`
 
@@ -25,21 +22,19 @@ type Room struct {
 
 // RoomAvailabilityList is a list of dates when a specific room is available for booking.
 type RoomAvailabilityList struct {
-	gorm.Model
 	ID            uint                   `gorm:"primaryKey"`
 	RoomID        uint                   `gorm:"not null;index"`
 	Room          Room                   `gorm:"constraint:OnDelete:CASCADE"`
-	EffectiveFrom time.Time              ``
+	EffectiveFrom time.Time              `gorm:"not null"`
 	Items         []RoomAvailabilityItem `gorm:"foreignKey:AvailabilityListID;constraint:OnDelete:CASCADE"`
 }
 
 // RoomAvailabilityItem defines a date range when a room is available (or not available).
 type RoomAvailabilityItem struct {
-	gorm.Model
 	ID                 uint      `gorm:"primaryKey"`
 	AvailabilityListID uint      `gorm:"not null;index"`
-	DateFrom           time.Time ``
-	DateTo             time.Time ``
+	DateFrom           time.Time `gorm:"not null"`
+	DateTo             time.Time `gorm:"not null"`
 
 	// Available determines if this item works as a "union" or a "disjoint".
 	// When true, the owning room availability list is expanded by this date
