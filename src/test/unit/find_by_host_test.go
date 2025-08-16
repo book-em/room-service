@@ -9,7 +9,7 @@ import (
 )
 
 func Test_FindByHost_Success(t *testing.T) {
-	svc, mockRepo, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	host := DefaultUser_Host
 
@@ -36,7 +36,7 @@ func Test_FindByHost_Success(t *testing.T) {
 }
 
 func Test_FindByHost_UserNotFound(t *testing.T) {
-	svc, _, _, mockUserClient := CreateTestRoomService()
+	svc, _, _, _, mockUserClient := CreateTestRoomService()
 
 	hostId := uint(123)
 	mockUserClient.On("FindById", hostId).Return(nil, fmt.Errorf("user not found"))
@@ -50,7 +50,7 @@ func Test_FindByHost_UserNotFound(t *testing.T) {
 }
 
 func Test_FindByHost_UserNotHost(t *testing.T) {
-	svc, _, _, mockUserClient := CreateTestRoomService()
+	svc, _, _, _, mockUserClient := CreateTestRoomService()
 
 	notHost := DefaultUser_Guest
 	mockUserClient.On("FindById", notHost.Id).Return(notHost, nil)
@@ -64,7 +64,7 @@ func Test_FindByHost_UserNotHost(t *testing.T) {
 }
 
 func Test_FindByHost_DbError(t *testing.T) {
-	svc, mockRepo, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	host := DefaultUser_Host
 
