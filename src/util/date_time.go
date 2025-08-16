@@ -7,10 +7,10 @@ func ClearYear(t time.Time) time.Time {
 		0,
 		t.Month(),
 		t.Day(),
-		t.Hour(),
-		t.Minute(),
-		t.Second(),
-		t.Nanosecond(),
+		0,
+		0,
+		0,
+		0,
 		t.Location(),
 	)
 }
