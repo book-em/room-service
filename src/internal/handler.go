@@ -23,6 +23,11 @@ func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.GET("/available/room/all/:id", r.handler.findAvailabilityListsByRoomId)
 	rg.GET("/available/:id", r.handler.findAvailabilityListById)
 	rg.POST("/available", r.handler.updateAvailability)
+
+	rg.GET("/price/room/:id", r.handler.findCurrentPriceListOfRoom)
+	rg.GET("/price/room/all/:id", r.handler.findPriceListsByRoomId)
+	rg.GET("/price/:id", r.handler.findPriceListById)
+	rg.POST("/price", r.handler.updatePriceList)
 }
 
 type Handler struct{ service Service }
@@ -182,4 +187,87 @@ func (h *Handler) updateAvailability(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, NewRoomAvailabilityListDTO(list))
+}
+
+func (h *Handler) findCurrentPriceListOfRoom(ctx *gin.Context) {
+	roomId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse room ID %s: %s", ctx.Param("id"), err.Error())
+		AbortError(ctx, ErrBadRequest)
+		return
+	}
+
+	list, err := h.service.FindCurrentPriceListOfRoom(uint(roomId))
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, NewRoomPriceListDTO(list))
+}
+
+func (h *Handler) findPriceListsByRoomId(ctx *gin.Context) {
+	roomId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse room ID %s: %s", ctx.Param("id"), err.Error())
+		AbortError(ctx, ErrBadRequest)
+		return
+	}
+
+	lists, err := h.service.FindPriceListsByRoomId(uint(roomId))
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	result := make([]RoomPriceListDTO, 0)
+	for _, list := range lists {
+		result = append(result, NewRoomPriceListDTO(&list))
+	}
+
+	ctx.JSON(http.StatusOK, result)
+}
+
+func (h *Handler) findPriceListById(ctx *gin.Context) {
+	listId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Printf("Could not parse price list ID %s: %s", ctx.Param("id"), err.Error())
+		AbortError(ctx, ErrBadRequest)
+		return
+	}
+
+	list, err := h.service.FindPriceListById(uint(listId))
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, NewRoomPriceListDTO(list))
+}
+
+func (h *Handler) updatePriceList(ctx *gin.Context) {
+	jwt, err := util.GetJwt(ctx)
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	if jwt.Role != userclient.Host {
+		AbortError(ctx, ErrUnauthorized)
+		return
+	}
+
+	var dto CreateRoomPriceListDTO
+	if err := ctx.ShouldBindJSON(&dto); err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	list, err := h.service.UpdatePriceList(jwt.ID, dto)
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, NewRoomPriceListDTO(list))
 }
