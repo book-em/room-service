@@ -8,7 +8,7 @@ import (
 )
 
 func Test_FindById_Success(t *testing.T) {
-	svc, mockRepo, _, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 
@@ -23,7 +23,7 @@ func Test_FindById_Success(t *testing.T) {
 }
 
 func Test_FindById_NotFound(t *testing.T) {
-	svc, mockRepo, _, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 

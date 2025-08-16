@@ -8,12 +8,20 @@ import (
 	mock "github.com/stretchr/testify/mock"
 )
 
-func CreateTestRoomService() (internal.Service, *MockRoomRepo, *MockRoomAvailabilityRepo, *MockUserClient) {
+func CreateTestRoomService() (
+	internal.Service,
+	*MockRoomRepo,
+	*MockRoomAvailabilityRepo,
+	*MockRoomPriceRepo,
+	*MockUserClient,
+) {
 	mockRepo := new(MockRoomRepo)
 	mockRoomAvailRepo := new(MockRoomAvailabilityRepo)
+	mockRoomPriceRepo := new(MockRoomPriceRepo)
 	mockUserClient := new(MockUserClient)
-	svc := internal.NewService(mockRepo, mockRoomAvailRepo, mockUserClient)
-	return svc, mockRepo, mockRoomAvailRepo, mockUserClient
+
+	svc := internal.NewService(mockRepo, mockRoomAvailRepo, mockRoomPriceRepo, mockUserClient)
+	return svc, mockRepo, mockRoomAvailRepo, mockRoomPriceRepo, mockUserClient
 }
 
 // ----------------------------------------------- Mock Room repo
@@ -75,6 +83,35 @@ func (m *MockRoomAvailabilityRepo) FindListsByRoomId(roomId uint) ([]internal.Ro
 func (m *MockRoomAvailabilityRepo) FindCurrentListOfRoom(roomId uint) (*internal.RoomAvailabilityList, error) {
 	args := m.Called(roomId)
 	list, _ := args.Get(0).(*internal.RoomAvailabilityList)
+	return list, args.Error(1)
+}
+
+// ----------------------------------------------- Mock price repo
+
+type MockRoomPriceRepo struct {
+	mock.Mock
+}
+
+func (m *MockRoomPriceRepo) CreateList(list *internal.RoomPriceList) error {
+	args := m.Called(list)
+	return args.Error(0)
+}
+
+func (m *MockRoomPriceRepo) FindListById(id uint) (*internal.RoomPriceList, error) {
+	args := m.Called(id)
+	list, _ := args.Get(0).(*internal.RoomPriceList)
+	return list, args.Error(1)
+}
+
+func (m *MockRoomPriceRepo) FindListsByRoomId(roomId uint) ([]internal.RoomPriceList, error) {
+	args := m.Called(roomId)
+	lists, _ := args.Get(0).([]internal.RoomPriceList)
+	return lists, args.Error(1)
+}
+
+func (m *MockRoomPriceRepo) FindCurrentListOfRoom(roomId uint) (*internal.RoomPriceList, error) {
+	args := m.Called(roomId)
+	list, _ := args.Get(0).(*internal.RoomPriceList)
 	return list, args.Error(1)
 }
 
@@ -187,4 +224,47 @@ var DefaultCreateAvailabilityItemDTO = internal.CreateRoomAvailabilityItemDTO{
 var DefaultCreateAvailabilityListDTO = internal.CreateRoomAvailabilityListDTO{
 	RoomID: DefaultRoom.ID,
 	Items:  []internal.CreateRoomAvailabilityItemDTO{DefaultCreateAvailabilityItemDTO},
+}
+
+var DefaultPriceItem = internal.RoomPriceItem{
+	ID:       1,
+	DateFrom: time.Date(2025, 8, 20, 0, 0, 0, 0, time.UTC),
+	DateTo:   time.Date(2025, 8, 25, 0, 0, 0, 0, time.UTC),
+	Price:    100,
+}
+
+var DefaultPriceList = &internal.RoomPriceList{
+	ID:            1,
+	RoomID:        DefaultRoom.ID,
+	EffectiveFrom: time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC),
+	BasePrice:     100,
+	PerGuest:      true,
+	Items:         []internal.RoomPriceItem{DefaultPriceItem},
+}
+
+var DefaultPriceItemDTO = internal.RoomPriceItemDTO{
+	ID:       DefaultPriceItem.ID,
+	DateFrom: DefaultPriceItem.DateFrom,
+	DateTo:   DefaultPriceItem.DateTo,
+	Price:    DefaultPriceItem.Price,
+}
+
+var DefaultPriceListDTO = internal.RoomPriceListDTO{
+	ID:            DefaultPriceList.ID,
+	RoomID:        DefaultPriceList.RoomID,
+	EffectiveFrom: DefaultPriceList.EffectiveFrom,
+	BasePrice:     DefaultPriceList.BasePrice,
+	PerGuest:      DefaultPriceList.PerGuest,
+	Items:         []internal.RoomPriceItemDTO{DefaultPriceItemDTO},
+}
+
+var DefaultCreatePriceItemDTO = internal.CreateRoomPriceItemDTO{
+	DateFrom: DefaultPriceItem.DateFrom,
+	DateTo:   DefaultPriceItem.DateTo,
+	Price:    DefaultPriceItem.Price,
+}
+
+var DefaultCreatePriceListDTO = internal.CreateRoomPriceListDTO{
+	RoomID: DefaultRoom.ID,
+	Items:  []internal.CreateRoomPriceItemDTO{DefaultCreatePriceItemDTO},
 }
