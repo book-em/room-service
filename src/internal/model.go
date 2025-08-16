@@ -26,15 +26,15 @@ type RoomAvailabilityList struct {
 	RoomID        uint                   `gorm:"not null;index"`
 	Room          Room                   ``
 	EffectiveFrom time.Time              `gorm:"not null"`
-	Items         []RoomAvailabilityItem `gorm:"foreignKey:AvailabilityListID"`
+	Items         []RoomAvailabilityItem `gorm:"many2many:room_availability_list_items;"`
 }
 
 // RoomAvailabilityItem defines a date range when a room is available (or not available).
 type RoomAvailabilityItem struct {
-	ID                 uint      `gorm:"primaryKey"`
-	AvailabilityListID uint      `gorm:"not null;index"`
-	DateFrom           time.Time `gorm:"not null"`
-	DateTo             time.Time `gorm:"not null"`
+	ID       uint                   `gorm:"primaryKey"`
+	Lists    []RoomAvailabilityList `gorm:"many2many:room_availability_list_items;"`
+	DateFrom time.Time              `gorm:"not null"`
+	DateTo   time.Time              `gorm:"not null"`
 
 	// Available determines if this item works as a "union" or a "disjoint".
 	// When true, the owning room availability list is expanded by this date
