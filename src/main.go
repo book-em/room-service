@@ -28,6 +28,8 @@ func syncDatabase() {
 	dB.AutoMigrate(&internal.Room{})
 	dB.AutoMigrate(&internal.RoomAvailabilityList{})
 	dB.AutoMigrate(&internal.RoomAvailabilityItem{})
+	dB.AutoMigrate(&internal.RoomPriceList{})
+	dB.AutoMigrate(&internal.RoomPriceItem{})
 }
 
 func connectToDb() {
@@ -82,8 +84,9 @@ func main() {
 
 	roomRepo := internal.NewRepository(dB)
 	roomAvailRepo := internal.NewRoomAvailabilityRepo(dB)
+	roomPriceRepo := internal.NewRoomPriceRepo(dB)
 
-	service := internal.NewService(roomRepo, roomAvailRepo, userClient)
+	service := internal.NewService(roomRepo, roomAvailRepo, roomPriceRepo, userClient)
 	handler := internal.NewHandler(service)
 	route := *internal.NewRoute(handler)
 
