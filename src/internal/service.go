@@ -17,20 +17,26 @@ type Service interface {
 	FindAvailabilityListsByRoomId(roomId uint) ([]RoomAvailabilityList, error)
 	FindCurrentAvailabilityListOfRoom(roomId uint) (*RoomAvailabilityList, error)
 	UpdateAvailability(callerID uint, dto CreateRoomAvailabilityListDTO) (*RoomAvailabilityList, error)
+
+	FindPriceListById(id uint) (*RoomPriceList, error)
+	FindPriceListsByRoomId(roomId uint) ([]RoomPriceList, error)
+	FindCurrentPriceListOfRoom(roomId uint) (*RoomPriceList, error)
+	UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*RoomPriceList, error)
 }
 
 type service struct {
 	repo            Repository
 	availabiltyRepo RoomAvailabilityRepo
-
-	userClient userclient.UserClient
+	priceRepo       RoomPriceRepo
+	userClient      userclient.UserClient
 }
 
 func NewService(
 	roomRepo Repository,
 	availabiltyRepo RoomAvailabilityRepo,
+	priceRepo RoomPriceRepo,
 	userClient userclient.UserClient) Service {
-	return &service{roomRepo, availabiltyRepo, userClient}
+	return &service{roomRepo, availabiltyRepo, priceRepo, userClient}
 }
 
 func (s *service) Create(callerID uint, dto CreateRoomDTO) (*Room, error) {
@@ -244,6 +250,111 @@ func (s *service) UpdateAvailability(callerID uint, dto CreateRoomAvailabilityLi
 	log.Printf("[7] Save availability list to DB")
 
 	err = s.availabiltyRepo.CreateList(&newList)
+	if err != nil {
+		return nil, err
+	}
+
+	return &newList, nil
+}
+
+func (s *service) FindPriceListById(id uint) (*RoomPriceList, error) {
+	list, err := s.priceRepo.FindListById(id)
+	if err != nil {
+		return nil, ErrNotFound("room price list", id)
+	}
+	return list, nil
+}
+
+func (s *service) FindPriceListsByRoomId(roomId uint) ([]RoomPriceList, error) {
+	_, err := s.FindById(roomId)
+	if err != nil {
+		return nil, ErrNotFound("room", roomId)
+	}
+
+	lists, err := s.priceRepo.FindListsByRoomId(roomId)
+	if err != nil {
+		return nil, ErrNotFound("room price lists", roomId)
+	}
+	return lists, nil
+}
+
+func (s *service) FindCurrentPriceListOfRoom(roomId uint) (*RoomPriceList, error) {
+	list, err := s.priceRepo.FindCurrentListOfRoom(roomId)
+	if err != nil {
+		return nil, ErrNotFound("room price list", roomId)
+	}
+	return list, nil
+}
+
+func (s *service) UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*RoomPriceList, error) {
+	log.Printf("[1] User exists")
+
+	caller, err := s.userClient.FindById(callerID)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[2] User is host")
+
+	if caller.Role != string(userclient.Host) {
+		log.Printf("Unauthorized (bad role %s)", caller.Role)
+		return nil, ErrUnauthorized
+	}
+
+	log.Printf("[3] Room exists")
+
+	room, err := s.FindById(dto.RoomID)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[4] Host owns the room")
+
+	if room.HostID != callerID {
+		return nil, ErrUnauthorized
+	}
+
+	log.Printf("[5] Create price list")
+
+	newList := RoomPriceList{
+		RoomID:        dto.RoomID,
+		EffectiveFrom: time.Now(),
+		BasePrice:     dto.BasePrice,
+		PerGuest:      dto.PerGuest,
+		Items:         make([]RoomPriceItem, 0, len(dto.Items)),
+	}
+
+	log.Printf("[6] Validate and create price list items")
+
+	for i, item := range dto.Items {
+		from := util.ClearYear(item.DateFrom)
+		to := util.ClearYear(item.DateTo)
+
+		if from.After(to) {
+			return nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", from, to))
+		}
+
+		for j, item2 := range dto.Items {
+			if i == j {
+				continue
+			}
+			if util.ClearYear(item.DateFrom) == util.ClearYear(item2.DateFrom) &&
+				util.ClearYear(item.DateTo) == util.ClearYear(item2.DateTo) {
+				return nil, ErrBadRequestCustom(fmt.Sprintf("duplicate price rule at index %d and %d", i, j))
+			}
+		}
+
+		newList.Items = append(newList.Items, RoomPriceItem{
+			ID:       item.ExistingID,
+			DateFrom: item.DateFrom,
+			DateTo:   item.DateTo,
+			Price:    item.Price,
+		})
+	}
+
+	log.Printf("[7] Save price list to DB")
+
+	err = s.priceRepo.CreateList(&newList)
 	if err != nil {
 		return nil, err
 	}
