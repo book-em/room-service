@@ -39,6 +39,8 @@ func NewRoomDTO(r *Room) RoomDTO {
 	}
 }
 
+// ---------------------------------------------------------------
+
 type CreateRoomAvailabilityListDTO struct {
 	RoomID uint                            `json:"roomId"`
 	Items  []CreateRoomAvailabilityItemDTO `json:"items"`
@@ -73,7 +75,7 @@ type RoomAvailabilityItemDTO struct {
 }
 
 type CreateRoomAvailabilityItemDTO struct {
-	// ExistingID is either the ID of an RoomAvailabiltyItem that already
+	// ExistingID is either the ID of an RoomAvailabilityItem that already
 	// exists, or 0 if this is a new item. When 0, a new one will be created in
 	// the DB. When not 0, it will reuse the existing object.
 	ExistingID uint      `json:"existingId"`
@@ -88,5 +90,65 @@ func NewRoomAvailabilityItemDTO(item RoomAvailabilityItem) RoomAvailabilityItemD
 		DateFrom:  item.DateFrom,
 		DateTo:    item.DateTo,
 		Available: item.Available,
+	}
+}
+
+// ---------------------------------------------------------------
+
+type CreateRoomPriceListDTO struct {
+	RoomID    uint                     `json:"roomId"`
+	Items     []CreateRoomPriceItemDTO `json:"items"`
+	BasePrice uint                     `json:"basePrice"`
+	PerGuest  bool                     `json:"perGuest:"`
+}
+
+type RoomPriceListDTO struct {
+	ID            uint               `json:"id"`
+	RoomID        uint               `json:"roomId"`
+	EffectiveFrom time.Time          `json:"effectiveFrom"`
+	BasePrice     uint               `json:"basePrice"`
+	Items         []RoomPriceItemDTO `json:"items"`
+	PerGuest      bool               `json:"perGuest"`
+}
+
+func NewRoomPriceListDTO(list *RoomPriceList) RoomPriceListDTO {
+	items := make([]RoomPriceItemDTO, 0, len(list.Items))
+	for _, item := range list.Items {
+		items = append(items, NewRoomPriceItemDTO(item))
+	}
+
+	return RoomPriceListDTO{
+		ID:            list.ID,
+		RoomID:        list.RoomID,
+		EffectiveFrom: list.EffectiveFrom,
+		BasePrice:     list.BasePrice,
+		Items:         items,
+		PerGuest:      list.PerGuest,
+	}
+}
+
+type RoomPriceItemDTO struct {
+	ID       uint      `json:"id"`
+	DateFrom time.Time `json:"dateFrom"`
+	DateTo   time.Time `json:"dateTo"`
+	Price    uint      `json:"price"`
+}
+
+type CreateRoomPriceItemDTO struct {
+	// ExistingID is either the ID of an RoomPriceItem that already
+	// exists, or 0 if this is a new item. When 0, a new one will be created in
+	// the DB. When not 0, it will reuse the existing object.
+	ExistingID uint      `json:"existingId"`
+	DateFrom   time.Time `json:"dateFrom"`
+	DateTo     time.Time `json:"dateTo"`
+	Price      uint      `json:"price"`
+}
+
+func NewRoomPriceItemDTO(item RoomPriceItem) RoomPriceItemDTO {
+	return RoomPriceItemDTO{
+		ID:       item.ID,
+		DateFrom: item.DateFrom,
+		DateTo:   item.DateTo,
+		Price:    item.Price,
 	}
 }
