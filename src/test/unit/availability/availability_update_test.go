@@ -110,13 +110,11 @@ func Test_UpdateAvailability_BadDateRange(t *testing.T) {
 	dto := internal.CreateRoomAvailabilityListDTO{
 		RoomID: DefaultRoom.ID,
 		Items: []internal.CreateRoomAvailabilityItemDTO{internal.CreateRoomAvailabilityItemDTO{
-			DateFrom:  time.Date(3025, 8, 20, 0, 0, 0, 0, time.UTC),
-			DateTo:    time.Date(2020, 8, 25, 0, 0, 0, 0, time.UTC),
+			DateFrom:  time.Date(2020, 12, 20, 0, 0, 0, 0, time.UTC),
+			DateTo:    time.Date(2020, 1, 25, 0, 0, 0, 0, time.UTC),
 			Available: DefaultAvailabilityItem.Available,
 		}},
 	}
-
-	dto.Items[0].DateFrom = dto.Items[0].DateTo.Add(time.Hour) // invalid range
 
 	user := DefaultUser_Host
 	room := DefaultRoom
