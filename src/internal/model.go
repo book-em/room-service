@@ -24,9 +24,9 @@ type Room struct {
 type RoomAvailabilityList struct {
 	ID            uint                   `gorm:"primaryKey"`
 	RoomID        uint                   `gorm:"not null;index"`
-	Room          Room                   `gorm:"constraint:OnDelete:CASCADE"`
+	Room          Room                   ``
 	EffectiveFrom time.Time              `gorm:"not null"`
-	Items         []RoomAvailabilityItem `gorm:"foreignKey:AvailabilityListID;constraint:OnDelete:CASCADE"`
+	Items         []RoomAvailabilityItem `gorm:"foreignKey:AvailabilityListID"`
 }
 
 // RoomAvailabilityItem defines a date range when a room is available (or not available).

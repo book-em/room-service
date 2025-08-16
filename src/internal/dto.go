@@ -73,9 +73,13 @@ type RoomAvailabilityItemDTO struct {
 }
 
 type CreateRoomAvailabilityItemDTO struct {
-	DateFrom  time.Time `json:"dateFrom"`
-	DateTo    time.Time `json:"dateTo"`
-	Available bool      `json:"available"`
+	// ExistingID is either the ID of an RoomAvailabiltyItem that already
+	// exists, or 0 if this is a new item. When 0, a new one will be created in
+	// the DB. When not 0, it will reuse the existing object.
+	ExistingID uint      `json:"existingId"`
+	DateFrom   time.Time `json:"dateFrom"`
+	DateTo     time.Time `json:"dateTo"`
+	Available  bool      `json:"available"`
 }
 
 func NewRoomAvailabilityItemDTO(item RoomAvailabilityItem) RoomAvailabilityItemDTO {
