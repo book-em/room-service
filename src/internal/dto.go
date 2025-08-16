@@ -99,7 +99,7 @@ type CreateRoomPriceListDTO struct {
 	RoomID    uint                     `json:"roomId"`
 	Items     []CreateRoomPriceItemDTO `json:"items"`
 	BasePrice uint                     `json:"basePrice"`
-	PerGuest  bool                     `json:"perGuest:"`
+	PerGuest  bool                     `json:"perGuest"`
 }
 
 type RoomPriceListDTO struct {
