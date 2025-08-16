@@ -195,3 +195,56 @@ func ResponseToRoomAvailabilityLists(resp *http.Response) []internal.RoomAvailab
 
 	return obj
 }
+
+func CreateRoomPrice(jwt string, dto internal.CreateRoomPriceListDTO) (*http.Response, error) {
+	jsonBytes, err := json.Marshal(dto)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, URL_room+"price", bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+jwt)
+	return http.DefaultClient.Do(req)
+}
+
+func ResponseToRoomPrice(resp *http.Response) internal.RoomPriceListDTO {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read response body: %v", err))
+	}
+
+	var obj internal.RoomPriceListDTO
+	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal: %v", err))
+	}
+
+	return obj
+}
+func ResponseToRoomPriceLists(resp *http.Response) []internal.RoomPriceListDTO {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read response body: %v", err))
+	}
+
+	var obj []internal.RoomPriceListDTO
+	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal: %v", err))
+	}
+
+	return obj
+}
+func FindCurrentPriceListOfRoom(roomId uint) (*http.Response, error) {
+	resp, err := http.Get(fmt.Sprintf("%sprice/room/%d", URL_room, roomId))
+	return resp, err
+}
+func FindPriceListsByRoomId(roomId uint) (*http.Response, error) {
+	resp, err := http.Get(fmt.Sprintf("%sprice/room/all/%d", URL_room, roomId))
+	return resp, err
+}
+func FindPriceListById(id uint) (*http.Response, error) {
+	resp, err := http.Get(fmt.Sprintf("%sprice/%d", URL_room, id))
+	return resp, err
+}
