@@ -37,7 +37,7 @@ func NewHandler(s Service) Handler { return Handler{s} }
 func (h *Handler) createRoom(ctx *gin.Context) {
 	jwt, err := util.GetJwt(ctx)
 	if err != nil {
-		AbortError(ctx, err)
+		AbortError(ctx, ErrUnauthenticated)
 		return
 	}
 
@@ -165,7 +165,7 @@ func (h *Handler) findAvailabilityListById(ctx *gin.Context) {
 func (h *Handler) updateAvailability(ctx *gin.Context) {
 	jwt, err := util.GetJwt(ctx)
 	if err != nil {
-		AbortError(ctx, err)
+		AbortError(ctx, ErrUnauthenticated)
 		return
 	}
 
@@ -248,7 +248,7 @@ func (h *Handler) findPriceListById(ctx *gin.Context) {
 func (h *Handler) updatePriceList(ctx *gin.Context) {
 	jwt, err := util.GetJwt(ctx)
 	if err != nil {
-		AbortError(ctx, err)
+		AbortError(ctx, ErrUnauthenticated)
 		return
 	}
 
