@@ -234,6 +234,7 @@ func (s *service) UpdateAvailability(callerID uint, dto CreateRoomAvailabilityLi
 		}
 
 		newList.Items = append(newList.Items, RoomAvailabilityItem{
+			ID:        item.ExistingID,
 			DateFrom:  item.DateFrom,
 			DateTo:    item.DateTo,
 			Available: item.Available,
