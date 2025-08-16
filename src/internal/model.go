@@ -16,8 +16,12 @@ type Room struct {
 	Commodities []string `gorm:"type:text;serializer:json"`
 
 	// AvailabilityListID refers to the latest list of times when the room is available.
-	// If there is not availability list item, then this is `nil`.
+	// If there is no availability list, then this is `nil`.
 	AvailabilityListID *uint
+
+	// PriceListID refers to the latest list of prices of the room.
+	// If there is no price list, then this is `nil`.
+	PriceListID *uint
 }
 
 // RoomAvailabilityList is a list of dates when a specific room is available for booking.
@@ -48,4 +52,25 @@ type RoomAvailabilityItem struct {
 	// Which means that the room is available for booking on all days except
 	// from Jan 1st to Jan 7th.
 	Available bool
+}
+
+type RoomPriceList struct {
+	ID            uint            `gorm:"primaryKey"`
+	RoomID        uint            `gorm:"not null;index"`
+	Room          Room            ``
+	EffectiveFrom time.Time       `gorm:"not null"`
+	BasePrice     uint            `gorm:"not null"`
+	Items         []RoomPriceItem `gorm:"many2many:room_price_list_items;"`
+	// If PerGuest is true, then this price is defined per guest of the room. If
+	// false, then this price is defined regardless of the number of guests a
+	// reservation is made for.
+	PerGuest bool `gorm:"not null"`
+}
+
+type RoomPriceItem struct {
+	ID       uint            `gorm:"primaryKey"`
+	Lists    []RoomPriceList `gorm:"many2many:room_price_list_items;"`
+	DateFrom time.Time       `gorm:"not null"`
+	DateTo   time.Time       `gorm:"not null"`
+	Price    uint            `gorm:"not null"`
 }
