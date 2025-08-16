@@ -338,9 +338,12 @@ func (s *service) UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*R
 			if i == j {
 				continue
 			}
-			if util.ClearYear(item.DateFrom) == util.ClearYear(item2.DateFrom) &&
-				util.ClearYear(item.DateTo) == util.ClearYear(item2.DateTo) {
-				return nil, ErrBadRequestCustom(fmt.Sprintf("duplicate price rule at index %d and %d", i, j))
+
+			from2 := util.ClearYear(item2.DateFrom)
+			to2 := util.ClearYear(item2.DateTo)
+
+			if !from.After(to2) && !from2.After(to) {
+				return nil, ErrBadRequestCustom(fmt.Sprintf("price rules at index %d and %d conflict (no intersections allowed)", i, j))
 			}
 		}
 

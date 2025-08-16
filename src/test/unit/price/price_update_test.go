@@ -105,14 +105,12 @@ func Test_UpdatePriceList_BadDateRange(t *testing.T) {
 		RoomID: DefaultRoom.ID,
 		Items: []internal.CreateRoomPriceItemDTO{
 			{
-				DateFrom: time.Date(3025, 8, 20, 0, 0, 0, 0, time.UTC),
-				DateTo:   time.Date(2020, 8, 25, 0, 0, 0, 0, time.UTC),
+				DateFrom: time.Date(2020, 12, 20, 0, 0, 0, 0, time.UTC),
+				DateTo:   time.Date(2020, 1, 25, 0, 0, 0, 0, time.UTC),
 				Price:    100,
 			},
 		},
 	}
-
-	dto.Items[0].DateFrom = dto.Items[0].DateTo.Add(time.Hour) // invalid range
 
 	user := DefaultUser_Host
 	room := DefaultRoom
@@ -129,12 +127,57 @@ func Test_UpdatePriceList_BadDateRange(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-func Test_UpdatePriceList_DuplicateDateRange(t *testing.T) {
+func Test_UpdatePriceList_IntersectingDateRange(t *testing.T) {
 	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := internal.CreateRoomPriceListDTO{
 		RoomID: DefaultRoom.ID,
-		Items:  []internal.CreateRoomPriceItemDTO{DefaultCreatePriceItemDTO, DefaultCreatePriceItemDTO},
+		Items: []internal.CreateRoomPriceItemDTO{
+			{
+				DateFrom: time.Date(3025, 8, 10, 0, 0, 0, 0, time.UTC),
+				DateTo:   time.Date(2020, 8, 25, 0, 0, 0, 0, time.UTC),
+				Price:    100,
+			},
+			{
+				DateFrom: time.Date(3025, 8, 5, 0, 0, 0, 0, time.UTC),
+				DateTo:   time.Date(2020, 8, 15, 0, 0, 0, 0, time.UTC),
+				Price:    100,
+			},
+		},
+	}
+
+	user := DefaultUser_Host
+	room := DefaultRoom
+	room.HostID = user.Id
+
+	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
+
+	got, err := svc.UpdatePriceList(user.Id, dto)
+
+	assert.Error(t, err)
+	assert.Nil(t, got)
+	mockUserClient.AssertExpectations(t)
+	mockRepo.AssertExpectations(t)
+}
+
+func Test_UpdatePriceList_TouchingDateRange(t *testing.T) {
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+
+	dto := internal.CreateRoomPriceListDTO{
+		RoomID: DefaultRoom.ID,
+		Items: []internal.CreateRoomPriceItemDTO{
+			{
+				DateFrom: time.Date(3025, 8, 10, 0, 0, 0, 0, time.UTC),
+				DateTo:   time.Date(2020, 8, 25, 0, 0, 0, 0, time.UTC),
+				Price:    100,
+			},
+			{
+				DateFrom: time.Date(3025, 8, 25, 0, 0, 0, 0, time.UTC),
+				DateTo:   time.Date(2020, 8, 30, 0, 0, 0, 0, time.UTC),
+				Price:    100,
+			},
+		},
 	}
 
 	user := DefaultUser_Host
