@@ -6,12 +6,17 @@ on:
       - develop
       - master
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Generate Semantic Version
         id: version
@@ -41,3 +46,12 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ secrets.ROOM_SERVICE_NAME }}:${{ env.VERSION }}
+    
+      - name: Push tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
