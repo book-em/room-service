@@ -278,6 +278,7 @@ func (h *Handler) findAvailableRooms(ctx *gin.Context) {
 	var dto RoomsQueryDTO
 	if err := ctx.ShouldBindJSON(&dto); err != nil {
 		AbortError(ctx, err)
+		return
 	}
 
 	rooms, resultInfo, err := h.service.FindAvailableRooms(dto)
