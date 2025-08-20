@@ -89,17 +89,18 @@ func (r *repository) FindAvailableRooms(location string, guestsNumber uint, date
 		return nil, 0, err
 	}
 
-	find := `SELECT 
-			rooms.id AS ID, 
-			rooms.name AS Name, 
-			rooms.description AS Description, 
-			rooms.address AS Address,  
-			rooms.photos AS Photos, 
-			room_price_lists.base_price AS BasePrice,
+	find := `
+		SELECT 
+			rooms.id, 
+			rooms.name, 
+			rooms.description, 
+			rooms.address,
+			rooms.photos, 
+			room_price_lists.base_price,
 			CASE
 				WHEN per_guest = TRUE THEN temp_table.interval * room_price_lists.base_price * @guestsNumber
 				ELSE temp_table.interval * room_price_lists.base_price
-			END AS TotalPrice
+			END AS total_price
 		FROM temp_table, rooms, room_price_lists
 		WHERE temp_table.room_id = rooms.id and temp_table.available = TRUE 
 			AND rooms.price_list_id = room_price_lists.id
