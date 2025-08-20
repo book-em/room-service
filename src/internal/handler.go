@@ -18,6 +18,7 @@ func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.POST("/new", r.handler.createRoom)
 	rg.GET("/:id", r.handler.findRoomById)
 	rg.GET("/host/:id", r.handler.findRoomsByHostId)
+	rg.GET("/", r.handler.findAvailableRooms)
 
 	rg.GET("/available/room/:id", r.handler.findCurrentAvailabilityListOfRoom)
 	rg.GET("/available/room/all/:id", r.handler.findAvailabilityListsByRoomId)
@@ -270,4 +271,20 @@ func (h *Handler) updatePriceList(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, NewRoomPriceListDTO(list))
+}
+
+func (h *Handler) findAvailableRooms(ctx *gin.Context) {
+
+	var dto RoomsQueryDTO
+	if err := ctx.ShouldBindJSON(&dto); err != nil {
+		AbortError(ctx, err)
+	}
+
+	rooms, resultInfo, err := h.service.FindAvailableRooms(dto)
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, NewRoomsResultDTO(rooms, *resultInfo))
 }
