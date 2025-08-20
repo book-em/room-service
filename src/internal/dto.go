@@ -152,3 +152,41 @@ func NewRoomPriceItemDTO(item RoomPriceItem) RoomPriceItemDTO {
 		Price:    item.Price,
 	}
 }
+
+type RoomsQueryDTO struct {
+	Location     string    `json:"location"`
+	GuestsNumber uint      `json:"guestsNumber"`
+	DateFrom     time.Time `json:"dateFrom"`
+	DateTo       time.Time `json:"dateTo"`
+	PageNumber   uint      `json:"pageNumber"`
+	PageSize     uint      `json:"pageSize"`
+}
+
+type PaginatedResultInfoDTO struct {
+	Page       uint `json:"page"`
+	PageSize   uint `json:"pageSize"`
+	TotalPages uint `json:"totalPages"`
+	TotalHits  uint `json:"totalHits"`
+}
+
+type RoomResultDTO struct {
+	ID          uint     `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Address     string   `json:"address"`
+	Photos      []string `json:"photos" gorm:"type:text;serializer:json"`
+	BasePrice   float32  `json:"basePrice"`
+	TotalPrice  float32  `json:"totalPrice"`
+}
+
+type RoomsResultDTO struct {
+	Hits []RoomResultDTO        `json:"hits"`
+	Info PaginatedResultInfoDTO `json:"info"`
+}
+
+func NewRoomsResultDTO(hits []RoomResultDTO, info PaginatedResultInfoDTO) RoomsResultDTO {
+	return RoomsResultDTO{
+		Hits: hits,
+		Info: info,
+	}
+}

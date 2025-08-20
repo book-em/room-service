@@ -5,6 +5,7 @@ import (
 	"bookem-room-service/util"
 	"fmt"
 	"log"
+	"math"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type Service interface {
 	Create(callerID uint, dto CreateRoomDTO) (*Room, error)
 	FindById(id uint) (*Room, error)
 	FindByHost(hostId uint) ([]Room, error)
+	FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error)
 
 	FindAvailabilityListById(id uint) (*RoomAvailabilityList, error)
 	FindAvailabilityListsByRoomId(roomId uint) ([]RoomAvailabilityList, error)
@@ -363,4 +365,30 @@ func (s *service) UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*R
 	}
 
 	return &newList, nil
+}
+func (s *service) FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error) {
+
+	rooms, totalHits, err := s.repo.FindAvailableRooms(
+		dto.Location,
+		dto.GuestsNumber,
+		dto.DateFrom,
+		dto.DateTo,
+		dto.PageNumber,
+		dto.PageSize,
+	)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	totalPages := uint(math.Ceil(float64(totalHits) / float64(dto.PageSize)))
+
+	resultInfo := PaginatedResultInfoDTO{
+		Page:       dto.PageNumber,
+		PageSize:   dto.PageSize,
+		TotalPages: totalPages,
+		TotalHits:  uint(totalHits),
+	}
+
+	return rooms, &resultInfo, nil
 }
