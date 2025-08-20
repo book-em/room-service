@@ -57,6 +57,13 @@ func (r *MockRoomRepo) FindByHost(hostId uint) ([]internal.Room, error) {
 	return user, args.Error(1)
 }
 
+func (r *MockRoomRepo) FindAvailableRooms(location string, hostId uint, dateFrom time.Time, dateTo time.Time, minGuests uint, maxGuests uint) ([]internal.RoomResultDTO, int64, error) {
+	args := r.Called(location, hostId, dateFrom, dateTo, minGuests, maxGuests)
+	rooms, _ := args.Get(0).([]internal.RoomResultDTO)
+	total, _ := args.Get(1).(int64)
+	return rooms, total, args.Error(2)
+}
+
 // ----------------------------------------------- Mock room availabilty repo
 
 type MockRoomAvailabilityRepo struct {
@@ -267,4 +274,30 @@ var DefaultCreatePriceItemDTO = internal.CreateRoomPriceItemDTO{
 var DefaultCreatePriceListDTO = internal.CreateRoomPriceListDTO{
 	RoomID: DefaultRoom.ID,
 	Items:  []internal.CreateRoomPriceItemDTO{DefaultCreatePriceItemDTO},
+}
+
+var DefaultRoomsQueryDTO = &internal.RoomsQueryDTO{
+	Location:     "location",
+	GuestsNumber: 4,
+	DateFrom:     time.Date(2025, 8, 6, 0, 0, 0, 0, time.UTC),
+	DateTo:       time.Date(2025, 8, 7, 0, 0, 0, 0, time.UTC),
+	PageNumber:   1,
+	PageSize:     10,
+}
+
+var DefaultRoomResult = &internal.RoomResultDTO{
+	ID:          1,
+	Name:        "Room Name",
+	Description: "Room Desc",
+	Address:     "Room Address",
+	Photos:      []string{"test.png"},
+	BasePrice:   100.0,
+	TotalPrice:  200.0,
+}
+
+var DefaulPaginatedResultInfoDTO = &internal.PaginatedResultInfoDTO{
+	Page:       1,
+	PageSize:   10,
+	TotalPages: 1,
+	TotalHits:  3,
 }
