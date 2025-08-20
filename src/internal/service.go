@@ -368,6 +368,13 @@ func (s *service) UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*R
 }
 func (s *service) FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error) {
 
+	from := util.ClearYear(dto.DateFrom)
+	to := util.ClearYear(dto.DateTo)
+
+	if from.After(to) {
+		return nil, nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", from, to))
+	}
+
 	rooms, totalHits, err := s.repo.FindAvailableRooms(
 		dto.Location,
 		dto.GuestsNumber,
