@@ -287,5 +287,5 @@ func (h *Handler) findAvailableRooms(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusAccepted, NewRoomsResultDTO(rooms, *resultInfo))
+	ctx.JSON(http.StatusOK, NewRoomsResultDTO(rooms, *resultInfo))
 }
