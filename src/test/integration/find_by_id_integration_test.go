@@ -14,29 +14,29 @@ func TestIntegration_FindById_Success(t *testing.T) {
 	cleanup("room")
 	cleanup("user")
 
-	RegisterUser("user2", "1234", userclient.Host)
-	jwt := LoginUser2("user2", "1234")
+	registerUser("user2", "1234", userclient.Host)
+	jwt := loginUser2("user2", "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 
 	roomCreateDTO := test.DefaultRoomCreateDTO
 	roomCreateDTO.HostID = jwtObj.ID
 
-	resp, _ := CreateRoom(jwt, roomCreateDTO)
-	room := ResponseToRoom(resp)
+	resp, _ := createRoom(jwt, roomCreateDTO)
+	room := responseToRoom(resp)
 
 	roomId := room.ID
 
-	resp, err := FindRoomById(roomId)
+	resp, err := findRoomById(roomId)
 
 	require.NoError(t, err)
-	roomGot := ResponseToRoom(resp)
+	roomGot := responseToRoom(resp)
 
 	require.Equal(t, roomId, roomGot.ID)
 	require.Equal(t, room, roomGot)
 }
 
 func TestIntegration_FindById_MissingId(t *testing.T) {
-	resp, err := http.Get(URL_room)
+	resp, err := http.Get(url_room)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)

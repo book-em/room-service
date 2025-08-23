@@ -12,14 +12,14 @@ func TestIntegration_FindCurrentPriceListOfRoom_Success(t *testing.T) {
 	jwt, _, room := createUserAndRoomForPrice(username)
 
 	// Create 2, so we can check if the second one overrides the first one.
-	createRoomPrice(jwt, room)
-	priceList2 := createRoomPrice(jwt, room)
+	createRoomPriceList(jwt, room)
+	priceList2 := createRoomPriceList(jwt, room)
 
-	resp, err := FindCurrentPriceListOfRoom(room.ID)
+	resp, err := findCurrentPriceListOfRoom(room.ID)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	priceListGot := ResponseToRoomPrice(resp)
+	priceListGot := responseToRoomPrice(resp)
 	require.Equal(t, priceList2.ID, priceListGot.ID)
 }
 
@@ -27,7 +27,7 @@ func TestIntegration_FindCurrentPriceListOfRoom_NotFound(t *testing.T) {
 	username := "host_p_02"
 	_, _, room := createUserAndRoomForPrice(username)
 
-	resp, err := FindCurrentPriceListOfRoom(room.ID)
+	resp, err := findCurrentPriceListOfRoom(room.ID)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
@@ -36,19 +36,19 @@ func TestIntegration_FindPriceListsByRoomId_Success(t *testing.T) {
 	username := "host_p_03"
 	jwt, _, room := createUserAndRoomForPrice(username)
 
-	createRoomPrice(jwt, room)
-	createRoomPrice(jwt, room)
+	createRoomPriceList(jwt, room)
+	createRoomPriceList(jwt, room)
 
-	resp, err := FindPriceListsByRoomId(room.ID)
+	resp, err := findPriceListsByRoomId(room.ID)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	listsGot := ResponseToRoomPriceLists(resp)
+	listsGot := responseToRoomPriceLists(resp)
 	require.Equal(t, 2, len(listsGot))
 }
 
 func TestIntegration_FindPriceListsByRoomId_NotFound(t *testing.T) {
-	resp, err := FindPriceListsByRoomId(999888777)
+	resp, err := findPriceListsByRoomId(999888777)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
@@ -57,13 +57,13 @@ func TestIntegration_FindPriceListById_Success(t *testing.T) {
 	username := "host_p_05"
 	jwt, _, room := createUserAndRoomForPrice(username)
 
-	li := createRoomPrice(jwt, room)
+	li := createRoomPriceList(jwt, room)
 
-	resp, err := FindPriceListById(li.ID)
+	resp, err := findPriceListById(li.ID)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	listGot := ResponseToRoomPrice(resp)
+	listGot := responseToRoomPrice(resp)
 	require.Equal(t, li.ID, listGot.ID)
 }
 
@@ -71,7 +71,7 @@ func TestIntegration_FindPriceListById_NotFound(t *testing.T) {
 	username := "host_p_06"
 	_, _, room := createUserAndRoomForPrice(username)
 
-	resp, err := FindPriceListById(room.ID)
+	resp, err := findPriceListById(room.ID)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
