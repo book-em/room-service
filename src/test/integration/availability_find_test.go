@@ -68,6 +68,8 @@ func TestIntegration_FindAvailabilityListById_Success(t *testing.T) {
 }
 
 func TestIntegration_FindAvailabilityListById_NotFound(t *testing.T) {
+	cleanup("room")
+	cleanup("user")
 
 	username := "host_b_06"
 	_, _, room := createUserAndRoom(username)
