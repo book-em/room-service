@@ -366,6 +366,7 @@ func (s *service) UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*R
 
 	return &newList, nil
 }
+
 func (s *service) FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error) {
 
 	from := util.ClearYear(dto.DateFrom)
