@@ -3,6 +3,8 @@ package integration
 import (
 	"bookem-room-service/client/userclient"
 	"bookem-room-service/internal"
+	test "bookem-room-service/test/unit"
+	"bookem-room-service/util"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -105,6 +107,19 @@ func FindRoomById(id uint) (*http.Response, error) {
 	return resp, err
 }
 
+func FindAvailableRooms(dto internal.RoomsQueryDTO) (*http.Response, error) {
+	jsonBytes, err := json.Marshal(dto)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, URL_room+"all", bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		return nil, err
+	}
+	return http.DefaultClient.Do(req)
+}
+
 func FindRoomsByHostId(hostId uint) (*http.Response, error) {
 	resp, err := http.Get(fmt.Sprintf("%shost/%d", URL_room, hostId)) // No forward slash between them, it's in `URL`
 	return resp, err
@@ -161,6 +176,21 @@ func ResponseToRoomAvailability(resp *http.Response) internal.RoomAvailabilityLi
 
 	var obj internal.RoomAvailabilityListDTO
 	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal: %v", err))
+	}
+
+	return obj
+}
+
+func ResponseToFindAvailableRooms(resp *http.Response) internal.RoomsResultDTO {
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(fmt.Sprintf("failed to read response body: %v", err))
+	}
+
+	var obj internal.RoomsResultDTO
+	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
+		fmt.Print(string(bodyBytes))
 		panic(fmt.Sprintf("failed to unmarshal: %v", err))
 	}
 
@@ -303,3 +333,11 @@ func createRoomPrice(jwt string, room internal.RoomDTO) internal.RoomPriceListDT
 	return ResponseToRoomPrice(resp)
 }
 
+func setupRooms(quantity int) {
+	for i := range quantity {
+		username := fmt.Sprintf("host%d", i)
+		jwt, _, room := createUserAndRoom(username)
+		createRoomAvailability(jwt, room)
+		createRoomPrice(jwt, room)
+	}
+}
