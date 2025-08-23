@@ -11,6 +11,9 @@ import (
 )
 
 func TestIntegration_FindById_Success(t *testing.T) {
+	cleanup("room")
+	cleanup("user")
+
 	RegisterUser("user2", "1234", userclient.Host)
 	jwt := LoginUser2("user2", "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
