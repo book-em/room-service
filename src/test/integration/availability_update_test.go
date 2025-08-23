@@ -1,9 +1,8 @@
-package test
+package integration
 
 import (
 	"bookem-room-service/client/userclient"
 	"bookem-room-service/internal"
-	. "bookem-room-service/test/integration"
 	test "bookem-room-service/test/unit"
 	"bookem-room-service/util"
 	"net/http"
