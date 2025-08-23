@@ -1,43 +1,11 @@
-package test
+package integration
 
 import (
-	"bookem-room-service/client/userclient"
-	"bookem-room-service/internal"
-	. "bookem-room-service/test/integration"
-	test "bookem-room-service/test/unit"
-	"bookem-room-service/util"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func createUserAndRoom(username string) (string, *util.Jwt, internal.RoomDTO) {
-	RegisterUser(username, "1234", userclient.Host)
-	jwt := LoginUser2(username, "1234")
-	jwtObj, _ := util.GetJwtFromString(jwt)
-
-	dto := test.DefaultRoomCreateDTO
-	dto.HostID = jwtObj.ID
-	resp, _ := CreateRoom(jwt, dto)
-	room := ResponseToRoom(resp)
-
-	return jwt, jwtObj, room
-}
-
-func createRoomAvailability(jwt string, room internal.RoomDTO) internal.RoomAvailabilityListDTO {
-	dto := internal.CreateRoomAvailabilityListDTO{
-		RoomID: room.ID,
-		Items:  test.DefaultCreateAvailabilityListDTO.Items,
-	}
-
-	resp, err := CreateRoomAvailability(jwt, dto)
-	if err != nil {
-		panic(err)
-	}
-
-	return ResponseToRoomAvailability(resp)
-}
 
 func TestIntegration_FindCurrentAvailabilityListOfRoom_Success(t *testing.T) {
 	username := "host_b_01"
@@ -100,6 +68,7 @@ func TestIntegration_FindAvailabilityListById_Success(t *testing.T) {
 }
 
 func TestIntegration_FindAvailabilityListById_NotFound(t *testing.T) {
+
 	username := "host_b_06"
 	_, _, room := createUserAndRoom(username)
 
