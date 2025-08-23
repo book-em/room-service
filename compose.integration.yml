@@ -16,6 +16,16 @@ services:
         condition: service_healthy
     environment:
       JWT_PUBLIC_KEY_PATH: /app/keys/public_key.pem
+      ROOM_DB_HOST: room-db
+      ROOM_DB_PORT: 5432
+      ROOM_DB_NAME: bookem_roomdb_test
+      ROOM_DB_USER: bookem_roomdb_user
+      ROOM_DB_PASSWORD: testpass
+      USER_DB_HOST: user-db
+      USER_DB_PORT: 5432
+      USER_DB_NAME: bookem_userdb_test
+      USER_DB_USER: bookem_userdb_user
+      USER_DB_PASSWORD: testpass
     volumes:
       - go-mod-cache:/go/pkg/mod
       - ${ROOM_SERVICE_PATH}/keys/public_key.pem:/app/keys/public_key.pem:ro
