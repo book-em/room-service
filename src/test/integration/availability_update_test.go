@@ -14,14 +14,14 @@ import (
 
 func TestIntegration_UpdateAvailability_Success(t *testing.T) {
 	username := "host_a_01"
-	RegisterUser(username, "1234", userclient.Host)
-	jwt := LoginUser2(username, "1234")
+	registerUser(username, "1234", userclient.Host)
+	jwt := loginUser2(username, "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 
 	dto := test.DefaultRoomCreateDTO
 	dto.HostID = jwtObj.ID
-	resp, _ := CreateRoom(jwt, dto)
-	room := ResponseToRoom(resp)
+	resp, _ := createRoom(jwt, dto)
+	room := responseToRoom(resp)
 
 	// This test has two phases:
 	//
@@ -45,14 +45,14 @@ func TestIntegration_UpdateAvailability_Success(t *testing.T) {
 			},
 		}
 
-		resp, err := CreateRoomAvailability(jwt, createRoomDto)
+		resp, err := createRoomAvailability(jwt, createRoomDto)
 		if err != nil {
 			panic(err)
 		}
 		require.NoError(t, err)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		availList := ResponseToRoomAvailability(resp)
+		availList := responseToRoomAvailability(resp)
 
 		require.Equal(t, 2, len(availList.Items))
 		require.Equal(t, room.ID, availList.RoomID)
@@ -63,8 +63,8 @@ func TestIntegration_UpdateAvailability_Success(t *testing.T) {
 	// is reused in the DB.
 	//
 	{
-		resp, _ := FindCurrentAvailabilityListOfRoom(room.ID)
-		currentAvailabilityList := ResponseToRoomAvailability(resp)
+		resp, _ := findCurrentAvailabilityListOfRoom(room.ID)
+		currentAvailabilityList := responseToRoomAvailability(resp)
 		require.Equal(t, 2, len(currentAvailabilityList.Items))
 
 		// We will remove item [0] and keep item [1].
@@ -95,14 +95,14 @@ func TestIntegration_UpdateAvailability_Success(t *testing.T) {
 			},
 		}
 
-		resp, err := CreateRoomAvailability(jwt, createRoomDto)
+		resp, err := createRoomAvailability(jwt, createRoomDto)
 		if err != nil {
 			panic(err)
 		}
 		require.NoError(t, err)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		availList := ResponseToRoomAvailability(resp)
+		availList := responseToRoomAvailability(resp)
 
 		require.Equal(t, 2, len(availList.Items))
 		require.Equal(t, room.ID, availList.RoomID)
@@ -110,8 +110,8 @@ func TestIntegration_UpdateAvailability_Success(t *testing.T) {
 		// After it passes, we check if everything is OK
 
 		{
-			resp, _ := FindCurrentAvailabilityListOfRoom(room.ID)
-			newAvailabilityList := ResponseToRoomAvailability(resp)
+			resp, _ := findCurrentAvailabilityListOfRoom(room.ID)
+			newAvailabilityList := responseToRoomAvailability(resp)
 			require.Equal(t, 2, len(currentAvailabilityList.Items))
 
 			foundIDs := []uint{

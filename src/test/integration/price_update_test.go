@@ -14,14 +14,14 @@ import (
 
 func TestIntegration_UpdatePriceList_Success(t *testing.T) {
 	username := "host_pu_01"
-	RegisterUser(username, "1234", userclient.Host)
-	jwt := LoginUser2(username, "1234")
+	registerUser(username, "1234", userclient.Host)
+	jwt := loginUser2(username, "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 
 	dto := test.DefaultRoomCreateDTO
 	dto.HostID = jwtObj.ID
-	resp, _ := CreateRoom(jwt, dto)
-	room := ResponseToRoom(resp)
+	resp, _ := createRoom(jwt, dto)
+	room := responseToRoom(resp)
 
 	// [Phase 1] Create initial price list
 	{
@@ -43,19 +43,19 @@ func TestIntegration_UpdatePriceList_Success(t *testing.T) {
 			},
 		}
 
-		resp, err := CreateRoomPrice(jwt, createPriceDto)
+		resp, err := createRoomPrice(jwt, createPriceDto)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		priceList := ResponseToRoomPrice(resp)
+		priceList := responseToRoomPrice(resp)
 		require.Equal(t, 2, len(priceList.Items))
 		require.Equal(t, room.ID, priceList.RoomID)
 	}
 
 	// [Phase 2] Update price list: reuse one item, add a new one
 	{
-		resp, _ := FindCurrentPriceListOfRoom(room.ID)
-		currentPriceList := ResponseToRoomPrice(resp)
+		resp, _ := findCurrentPriceListOfRoom(room.ID)
+		currentPriceList := responseToRoomPrice(resp)
 		require.Equal(t, 2, len(currentPriceList.Items))
 
 		// Remove item [0], keep item [1], add new item
@@ -77,18 +77,18 @@ func TestIntegration_UpdatePriceList_Success(t *testing.T) {
 			Items:  []internal.CreateRoomPriceItemDTO{itemToAdd, itemToKeep},
 		}
 
-		resp, err := CreateRoomPrice(jwt, updatePriceDto)
+		resp, err := createRoomPrice(jwt, updatePriceDto)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-		priceList := ResponseToRoomPrice(resp)
+		priceList := responseToRoomPrice(resp)
 		require.Equal(t, 2, len(priceList.Items))
 		require.Equal(t, room.ID, priceList.RoomID)
 
 		// Final check: confirm reuse and replacement
 		{
-			resp, _ := FindCurrentPriceListOfRoom(room.ID)
-			newPriceList := ResponseToRoomPrice(resp)
+			resp, _ := findCurrentPriceListOfRoom(room.ID)
+			newPriceList := responseToRoomPrice(resp)
 			require.Equal(t, 2, len(newPriceList.Items))
 
 			foundIDs := []uint{
