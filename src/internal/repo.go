@@ -77,7 +77,7 @@ func (r *repository) FindAvailableRooms(location string, guestsNumber uint, date
 		)
 	`
 
-	count := `SELECT COUNT(*) FROM temp_table`
+	count := `SELECT COUNT(*) FROM temp_table WHERE temp_table.available = TRUE`
 	err = r.db.Raw(with+count, map[string]interface{}{
 		"address":      location,
 		"dateFrom":     dateFrom,
@@ -103,7 +103,8 @@ func (r *repository) FindAvailableRooms(location string, guestsNumber uint, date
 			END AS total_price
 		FROM temp_table, rooms, room_price_lists
 		WHERE temp_table.room_id = rooms.id and temp_table.available = TRUE 
-			AND rooms.price_list_id = room_price_lists.id
+			AND rooms.price_list_id 
+			= room_price_lists.id
 		LIMIT @limit OFFSET @offset
 	`
 	offset := int((pageNumber - 1) * pageSize)
