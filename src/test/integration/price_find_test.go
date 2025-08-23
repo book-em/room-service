@@ -1,43 +1,11 @@
-package test
+package integration
 
 import (
-	"bookem-room-service/client/userclient"
-	"bookem-room-service/internal"
-	. "bookem-room-service/test/integration"
-	test "bookem-room-service/test/unit"
-	"bookem-room-service/util"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
-
-func createUserAndRoomForPrice(username string) (string, *util.Jwt, internal.RoomDTO) {
-	RegisterUser(username, "1234", userclient.Host)
-	jwt := LoginUser2(username, "1234")
-	jwtObj, _ := util.GetJwtFromString(jwt)
-
-	dto := test.DefaultRoomCreateDTO
-	dto.HostID = jwtObj.ID
-	resp, _ := CreateRoom(jwt, dto)
-	room := ResponseToRoom(resp)
-
-	return jwt, jwtObj, room
-}
-
-func createRoomPrice(jwt string, room internal.RoomDTO) internal.RoomPriceListDTO {
-	dto := internal.CreateRoomPriceListDTO{
-		RoomID: room.ID,
-		Items:  test.DefaultCreatePriceListDTO.Items,
-	}
-
-	resp, err := CreateRoomPrice(jwt, dto)
-	if err != nil {
-		panic(err)
-	}
-
-	return ResponseToRoomPrice(resp)
-}
 
 func TestIntegration_FindCurrentPriceListOfRoom_Success(t *testing.T) {
 	username := "host_p_01"

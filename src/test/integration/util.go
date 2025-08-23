@@ -1,4 +1,4 @@
-package test
+package integration
 
 import (
 	"bookem-room-service/client/userclient"
@@ -248,3 +248,58 @@ func FindPriceListById(id uint) (*http.Response, error) {
 	resp, err := http.Get(fmt.Sprintf("%sprice/%d", URL_room, id))
 	return resp, err
 }
+
+func createUserAndRoom(username string) (string, *util.Jwt, internal.RoomDTO) {
+	RegisterUser(username, "1234", userclient.Host)
+	jwt := LoginUser2(username, "1234")
+	jwtObj, _ := util.GetJwtFromString(jwt)
+
+	dto := test.DefaultRoomCreateDTO
+	dto.HostID = jwtObj.ID
+	resp, _ := CreateRoom(jwt, dto)
+	room := ResponseToRoom(resp)
+
+	return jwt, jwtObj, room
+}
+
+func createRoomAvailability(jwt string, room internal.RoomDTO) internal.RoomAvailabilityListDTO {
+	dto := internal.CreateRoomAvailabilityListDTO{
+		RoomID: room.ID,
+		Items:  test.DefaultCreateAvailabilityListDTO.Items,
+	}
+
+	resp, err := CreateRoomAvailability(jwt, dto)
+	if err != nil {
+		panic(err)
+	}
+
+	return ResponseToRoomAvailability(resp)
+}
+
+func createUserAndRoomForPrice(username string) (string, *util.Jwt, internal.RoomDTO) {
+	RegisterUser(username, "1234", userclient.Host)
+	jwt := LoginUser2(username, "1234")
+	jwtObj, _ := util.GetJwtFromString(jwt)
+
+	dto := test.DefaultRoomCreateDTO
+	dto.HostID = jwtObj.ID
+	resp, _ := CreateRoom(jwt, dto)
+	room := ResponseToRoom(resp)
+
+	return jwt, jwtObj, room
+}
+
+func createRoomPrice(jwt string, room internal.RoomDTO) internal.RoomPriceListDTO {
+	dto := internal.CreateRoomPriceListDTO{
+		RoomID: room.ID,
+		Items:  test.DefaultCreatePriceListDTO.Items,
+	}
+
+	resp, err := CreateRoomPrice(jwt, dto)
+	if err != nil {
+		panic(err)
+	}
+
+	return ResponseToRoomPrice(resp)
+}
+

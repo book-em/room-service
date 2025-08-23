@@ -1,4 +1,4 @@
-package test
+package integration
 
 import (
 	"bookem-room-service/client/userclient"
