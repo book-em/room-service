@@ -19,8 +19,8 @@ func TestIntegration_FindAvailableRooms_Success(t *testing.T) {
 	query.DateFrom = time.Date(2025, 8, 22, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 8, 23, 0, 0, 0, 0, time.UTC)
 
-	resp, err := FindAvailableRooms(*query)
-	result := ResponseToFindAvailableRooms(resp)
+	resp, err := findAvailableRooms(*query)
+	result := responseToFindAvailableRooms(resp)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -43,8 +43,8 @@ func TestIntegration_FindAvailableRooms_Pagination_Success(t *testing.T) {
 	query.PageNumber = 3
 	query.PageSize = 2
 
-	resp, err := FindAvailableRooms(*query)
-	result := ResponseToFindAvailableRooms(resp)
+	resp, err := findAvailableRooms(*query)
+	result := responseToFindAvailableRooms(resp)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -57,8 +57,8 @@ func TestIntegration_FindAvailableRooms_Pagination_Success(t *testing.T) {
 	query.PageNumber = 1
 	query.PageSize = 2
 
-	resp, err = FindAvailableRooms(*query)
-	result = ResponseToFindAvailableRooms(resp)
+	resp, err = findAvailableRooms(*query)
+	result = responseToFindAvailableRooms(resp)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -80,8 +80,8 @@ func TestIntegration_FindAvailableRooms_NoHits_Success(t *testing.T) {
 	query.DateFrom = time.Date(2025, 10, 22, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 10, 23, 0, 0, 0, 0, time.UTC)
 
-	resp, err := FindAvailableRooms(*query)
-	result := ResponseToFindAvailableRooms(resp)
+	resp, err := findAvailableRooms(*query)
+	result := responseToFindAvailableRooms(resp)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -95,8 +95,8 @@ func TestIntegration_FindAvailableRooms_NoHits_Success(t *testing.T) {
 	query = test.DefaultRoomsQueryDTO
 	query.Location = "unknown address"
 
-	resp, err = FindAvailableRooms(*query)
-	result = ResponseToFindAvailableRooms(resp)
+	resp, err = findAvailableRooms(*query)
+	result = responseToFindAvailableRooms(resp)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -111,8 +111,8 @@ func TestIntegration_FindAvailableRooms_NoHits_Success(t *testing.T) {
 	query.Location = "Room Address"
 	query.GuestsNumber = 9999
 
-	resp, err = FindAvailableRooms(*query)
-	result = ResponseToFindAvailableRooms(resp)
+	resp, err = findAvailableRooms(*query)
+	result = responseToFindAvailableRooms(resp)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -133,7 +133,7 @@ func TestIntegration_FindAvailableRooms_InvalidDate(t *testing.T) {
 	query.DateFrom = time.Date(2025, 10, 23, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 10, 22, 0, 0, 0, 0, time.UTC)
 
-	resp, err := FindAvailableRooms(*query)
+	resp, err := findAvailableRooms(*query)
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
