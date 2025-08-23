@@ -18,7 +18,7 @@ func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.POST("/new", r.handler.createRoom)
 	rg.GET("/:id", r.handler.findRoomById)
 	rg.GET("/host/:id", r.handler.findRoomsByHostId)
-	rg.GET("/", r.handler.findAvailableRooms)
+	rg.GET("/all", r.handler.findAvailableRooms)
 
 	rg.GET("/available/room/:id", r.handler.findCurrentAvailabilityListOfRoom)
 	rg.GET("/available/room/all/:id", r.handler.findAvailabilityListsByRoomId)
