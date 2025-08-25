@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,14 @@ type Service interface {
 	FindPriceListsByRoomId(roomId uint) ([]RoomPriceList, error)
 	FindCurrentPriceListOfRoom(roomId uint) (*RoomPriceList, error)
 	UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*RoomPriceList, error)
+
+	ClearYear(dateFrom time.Time, dateTo time.Time) (time.Time, time.Time)
+	CheckPrice(day time.Time, basePrice uint, rules []RoomPriceItem) uint
+	CalculatePrice(dateFrom time.Time, dateTo time.Time, guestsNumber uint, roomId uint) (float32, bool, error)
+	IsRoomAvailable(day time.Time, rules []RoomAvailabilityItem) bool
+	CanBook(dateFrom time.Time, dateTo time.Time, roomId uint) bool
+	CalculateUnitPrice(perGuest bool, guestsNumber uint, dateFrom time.Time, dateTo time.Time, totalPrice float32) float32
+	PreparePaginatedResult(hits []RoomResultDTO, pageNumber uint, pageSize uint) ([]RoomResultDTO, PaginatedResultInfoDTO)
 }
 
 type service struct {
@@ -367,6 +376,131 @@ func (s *service) UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*R
 	return &newList, nil
 }
 
+func (s *service) ClearYear(dateFrom time.Time, dateTo time.Time) (time.Time, time.Time) {
+	dateFrom = util.ClearYear(dateFrom)
+	dateTo = util.ClearYear(dateTo)
+	return dateFrom, dateTo
+}
+
+func (s *service) CheckPrice(day time.Time, basePrice uint, rules []RoomPriceItem) uint {
+	price := basePrice
+
+	for _, rule := range rules {
+		rule.DateFrom, rule.DateTo = s.ClearYear(rule.DateFrom, rule.DateTo)
+
+		if !day.Before(rule.DateFrom) && !day.After(rule.DateTo) {
+			price = rule.Price
+		}
+	}
+
+	return price
+}
+
+func (s *service) CalculatePrice(dateFrom time.Time, dateTo time.Time, guestsNumber uint, roomId uint) (float32, bool, error) {
+	rules, err := s.FindCurrentPriceListOfRoom(roomId)
+	if err != nil {
+		return float32(0), false, err
+	}
+
+	dateFrom, dateTo = s.ClearYear(dateFrom, dateTo)
+	var totalPrice float32
+
+	for day := dateFrom; !day.After(dateTo); day = day.Add(24 * time.Hour) {
+		price := s.CheckPrice(day, rules.BasePrice, rules.Items)
+		if rules.PerGuest {
+			totalPrice += float32(price * guestsNumber)
+		} else {
+			totalPrice += float32(price)
+		}
+	}
+
+	return totalPrice, rules.PerGuest, nil
+}
+
+func (s *service) IsRoomAvailable(day time.Time, rules []RoomAvailabilityItem) bool {
+	leastRule := RoomAvailabilityItem{
+		DateFrom:  time.Time{}, // The zero value represents the earliest possible time
+		DateTo:    time.Now(),
+		Available: false,
+	}
+
+	for _, rule := range rules {
+		rule.DateFrom, rule.DateTo = s.ClearYear(rule.DateFrom, rule.DateTo)
+
+		if !day.Before(rule.DateFrom) && !day.After(rule.DateTo) {
+			if rule.DateTo.Sub(rule.DateFrom) < leastRule.DateTo.Sub(leastRule.DateFrom) {
+				leastRule = rule
+			}
+		}
+	}
+
+	return leastRule.Available
+}
+
+func (s *service) CanBook(dateFrom time.Time, dateTo time.Time, roomId uint) bool {
+	dateFrom, dateTo = s.ClearYear(dateFrom, dateTo)
+
+	rules, err := s.FindCurrentAvailabilityListOfRoom(roomId)
+	if err != nil {
+		return false
+	}
+
+	for day := dateFrom; !day.After(dateTo); day = day.Add(24 * time.Hour) {
+		if s.IsRoomAvailable(day, rules.Items) == false {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *service) CalculateUnitPrice(perGuest bool, guestsNumber uint, dateFrom time.Time, dateTo time.Time, totalPrice float32) float32 {
+	var unitPrice float32
+	interval := float32(dateTo.Sub(dateFrom).Hours()/24) + 1
+
+	if perGuest {
+		unitPrice = totalPrice / interval / float32(guestsNumber)
+	} else {
+		unitPrice = totalPrice / interval
+	}
+
+	return unitPrice
+}
+
+func (s *service) PreparePaginatedResult(hits []RoomResultDTO, pageNumber uint, pageSize uint) ([]RoomResultDTO, PaginatedResultInfoDTO) {
+
+	totalHits := len(hits)
+	totalPages := uint(math.Ceil(float64(totalHits) / float64(pageSize)))
+	startIdx := uint((pageNumber - 1) * pageSize)
+	endIdx := startIdx + pageSize
+	lastPage := totalPages - 1
+	lastPageStartIdx := lastPage * pageSize
+	lastPageEndIdx := uint(totalHits)
+
+	resultInfo := PaginatedResultInfoDTO{
+		Page:       pageNumber,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+		TotalHits:  uint(totalHits),
+	}
+
+	if totalHits != 0 {
+		// Show last page result if page number exceeds total
+		if startIdx > lastPageEndIdx {
+			startIdx = lastPageStartIdx
+			endIdx = lastPageEndIdx
+		}
+
+		// Case when the last page is selected
+		if endIdx > lastPageEndIdx {
+			endIdx = lastPageEndIdx
+		}
+
+		hits = hits[startIdx:endIdx]
+	}
+
+	return hits, resultInfo
+}
+
 func (s *service) FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error) {
 
 	from := util.ClearYear(dto.DateFrom)
@@ -376,27 +510,27 @@ func (s *service) FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *Pagin
 		return nil, nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", from, to))
 	}
 
-	rooms, totalHits, err := s.repo.FindAvailableRooms(
-		dto.Location,
-		dto.GuestsNumber,
-		dto.DateFrom,
-		dto.DateTo,
-		dto.PageNumber,
-		dto.PageSize,
-	)
-
+	rooms, err := s.repo.FindByFilters(dto.GuestsNumber, strings.TrimSpace(dto.Address))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	totalPages := uint(math.Ceil(float64(totalHits) / float64(dto.PageSize)))
+	var hits []RoomResultDTO
+	for _, room := range rooms {
+		canBook := s.CanBook(from, to, room.ID)
 
-	resultInfo := PaginatedResultInfoDTO{
-		Page:       dto.PageNumber,
-		PageSize:   dto.PageSize,
-		TotalPages: totalPages,
-		TotalHits:  uint(totalHits),
+		if canBook {
+			totalPrice, perGuest, err := s.CalculatePrice(from, to, dto.GuestsNumber, room.ID)
+			if err != nil {
+				continue
+			}
+			unitPrice := s.CalculateUnitPrice(perGuest, dto.GuestsNumber, from, to, totalPrice)
+			hits = append(hits, NewRoomResultDTO(room, perGuest, unitPrice, totalPrice))
+		}
+
 	}
 
-	return rooms, &resultInfo, nil
+	hits, resultInfo := s.PreparePaginatedResult(hits, dto.PageNumber, dto.PageSize)
+
+	return hits, &resultInfo, nil
 }
