@@ -57,11 +57,10 @@ func (r *MockRoomRepo) FindByHost(hostId uint) ([]internal.Room, error) {
 	return user, args.Error(1)
 }
 
-func (r *MockRoomRepo) FindAvailableRooms(location string, hostId uint, dateFrom time.Time, dateTo time.Time, minGuests uint, maxGuests uint) ([]internal.RoomResultDTO, int64, error) {
-	args := r.Called(location, hostId, dateFrom, dateTo, minGuests, maxGuests)
-	rooms, _ := args.Get(0).([]internal.RoomResultDTO)
-	total, _ := args.Get(1).(int64)
-	return rooms, total, args.Error(2)
+func (r *MockRoomRepo) FindByFilters(guestsNumber uint, location string) ([]internal.Room, error) {
+	args := r.Called(uint(guestsNumber), string(location))
+	rooms, _ := args.Get(0).([]internal.Room)
+	return rooms, args.Error(1)
 }
 
 // ----------------------------------------------- Mock room availabilty repo
@@ -277,7 +276,7 @@ var DefaultCreatePriceListDTO = internal.CreateRoomPriceListDTO{
 }
 
 var DefaultRoomsQueryDTO = &internal.RoomsQueryDTO{
-	Location:     "location",
+	Address:      "address",
 	GuestsNumber: 4,
 	DateFrom:     time.Date(2025, 8, 6, 0, 0, 0, 0, time.UTC),
 	DateTo:       time.Date(2025, 8, 7, 0, 0, 0, 0, time.UTC),
@@ -291,7 +290,7 @@ var DefaultRoomResult = &internal.RoomResultDTO{
 	Description: "Room Desc",
 	Address:     "Room Address",
 	Photos:      []string{"test.png"},
-	BasePrice:   100.0,
+	UnitPrice:   100.0,
 	TotalPrice:  200.0,
 }
 
