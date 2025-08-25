@@ -154,7 +154,7 @@ func NewRoomPriceItemDTO(item RoomPriceItem) RoomPriceItemDTO {
 }
 
 type RoomsQueryDTO struct {
-	Location     string    `json:"location"`
+	Address      string    `json:"address"`
 	GuestsNumber uint      `json:"guestsNumber" binding:"required,min=1"`
 	DateFrom     time.Time `json:"dateFrom" binding:"required"`
 	DateTo       time.Time `json:"dateTo" binding:"required"`
@@ -175,8 +175,22 @@ type RoomResultDTO struct {
 	Description string   `json:"description"`
 	Address     string   `json:"address"`
 	Photos      []string `json:"photos" gorm:"type:text;serializer:json"`
-	BasePrice   float32  `json:"basePrice"`
+	PerGuest    bool     `json:"perGuest"`
+	UnitPrice   float32  `json:"unitPrice"`
 	TotalPrice  float32  `json:"totalPrice"`
+}
+
+func NewRoomResultDTO(room Room, perGuest bool, unitPrice float32, totalPrice float32) RoomResultDTO {
+	return RoomResultDTO{
+		ID:          room.ID,
+		Name:        room.Name,
+		Description: room.Description,
+		Address:     room.Address,
+		Photos:      room.Photos,
+		PerGuest:    perGuest,
+		UnitPrice:   unitPrice,
+		TotalPrice:  totalPrice,
+	}
 }
 
 type RoomsResultDTO struct {
