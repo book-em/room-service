@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -12,7 +10,7 @@ type Repository interface {
 	Delete(room *Room) error
 	FindById(id uint) (*Room, error)
 	FindByHost(hostId uint) ([]Room, error)
-	FindAvailableRooms(location string, guestsNumber uint, dateFrom time.Time, dateTo time.Time, pageNumber uint, pageSize uint) ([]RoomResultDTO, int64, error)
+	FindByFilters(guestsNumber uint, address string) ([]Room, error)
 }
 
 type repository struct {
@@ -53,70 +51,18 @@ func (r *repository) FindByHost(hostId uint) ([]Room, error) {
 	return rooms, nil
 }
 
-func (r *repository) FindAvailableRooms(location string, guestsNumber uint, dateFrom time.Time, dateTo time.Time, pageNumber uint, pageSize uint) (rooms []RoomResultDTO, totalHits int64, err error) {
+func (r *repository) FindByFilters(guestsNumber uint, address string) ([]Room, error) {
+	var rooms []Room
+	query := r.db.Where("min_guests < ? and max_guests > ?", guestsNumber, guestsNumber)
 
-	with := `
-		WITH temp_table (room_id, available, interval) AS
-		(
-			SELECT DISTINCT ON
-				(rooms.id) rooms.id,
-				room_availability_items.available,
-				(CAST(@dateTo AS DATE) - CAST(@dateFrom AS DATE)) AS interval
-			FROM rooms
-			INNER JOIN room_availability_list_items 
-				ON rooms.availability_list_id = room_availability_list_items.room_availability_list_id
-			INNER JOIN room_availability_items 
-				ON room_availability_items.id = room_availability_list_items.room_availability_item_id
-			WHERE room_availability_items.date_from <= @dateFrom 
-				AND room_availability_items.date_to >= @dateTo
-				AND min_guests <= @guestsNumber
-				AND max_guests >= @guestsNumber
-				AND (CASE WHEN @address = '' THEN LOWER(address) ELSE LOWER(@address) end) 
-					LIKE CONCAT('%' || LOWER(address) || '%')
-			ORDER BY rooms.id, room_availability_items.date_to - room_availability_items.date_from ASC
-		)
-	`
-
-	count := `SELECT COUNT(*) FROM temp_table WHERE temp_table.available = TRUE`
-	err = r.db.Raw(with+count, map[string]interface{}{
-		"address":      location,
-		"dateFrom":     dateFrom,
-		"dateTo":       dateTo,
-		"guestsNumber": guestsNumber,
-	}).Count(&totalHits).Error
-
-	if err != nil {
-		return nil, 0, err
+	if address != "" {
+		query = query.Where("LOWER( ? ) LIKE CONCAT('%' || LOWER(address) || '%')", address)
 	}
 
-	find := `
-		SELECT 
-			rooms.id, 
-			rooms.name, 
-			rooms.description, 
-			rooms.address,
-			rooms.photos, 
-			room_price_lists.base_price,
-			CASE
-				WHEN per_guest = TRUE THEN temp_table.interval * room_price_lists.base_price * @guestsNumber
-				ELSE temp_table.interval * room_price_lists.base_price
-			END AS total_price
-		FROM temp_table, rooms, room_price_lists
-		WHERE temp_table.room_id = rooms.id and temp_table.available = TRUE 
-			AND rooms.price_list_id 
-			= room_price_lists.id
-		LIMIT @limit OFFSET @offset
-	`
-	offset := int((pageNumber - 1) * pageSize)
-	println("offset", offset, "page size", int(pageSize))
-	err = r.db.Raw(with+find, map[string]interface{}{
-		"address":      location,
-		"dateFrom":     dateFrom,
-		"dateTo":       dateTo,
-		"guestsNumber": guestsNumber,
-		"limit":        int(pageSize),
-		"offset":       offset,
-	}).Scan(&rooms).Error
+	err := query.Find(&rooms).Error
+	if err != nil {
+		return nil, query.Error
+	}
 
-	return rooms, totalHits, nil
+	return rooms, nil
 }
