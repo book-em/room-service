@@ -15,7 +15,7 @@ func TestIntegration_FindAvailableRooms_Success(t *testing.T) {
 	setupRooms(5)
 
 	query := test.DefaultRoomsQueryDTO
-	query.Location = "Room Address"
+	query.Address = "Room Address"
 	query.DateFrom = time.Date(2025, 8, 22, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 8, 23, 0, 0, 0, 0, time.UTC)
 
@@ -37,7 +37,7 @@ func TestIntegration_FindAvailableRooms_Pagination_Success(t *testing.T) {
 	setupRooms(5)
 
 	query := test.DefaultRoomsQueryDTO
-	query.Location = "Room Address"
+	query.Address = "  Room ADDRESS  "
 	query.DateFrom = time.Date(2025, 8, 22, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 8, 23, 0, 0, 0, 0, time.UTC)
 	query.PageNumber = 3
@@ -76,7 +76,7 @@ func TestIntegration_FindAvailableRooms_NoHits_Success(t *testing.T) {
 
 	// [1] No available rooms for a certain date range
 	query := test.DefaultRoomsQueryDTO
-	query.Location = "Room Address"
+	query.Address = "Room Address"
 	query.DateFrom = time.Date(2025, 10, 22, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 10, 23, 0, 0, 0, 0, time.UTC)
 
@@ -91,9 +91,9 @@ func TestIntegration_FindAvailableRooms_NoHits_Success(t *testing.T) {
 	require.Equal(t, query.PageSize, result.Info.PageSize)
 	require.Equal(t, 0, int(result.Info.TotalPages))
 
-	// [2] No available rooms for a specific location
+	// [2] No available rooms for a specific address
 	query = test.DefaultRoomsQueryDTO
-	query.Location = "unknown address"
+	query.Address = "unknown address"
 
 	resp, err = findAvailableRooms(*query)
 	result = responseToFindAvailableRooms(resp)
@@ -108,7 +108,7 @@ func TestIntegration_FindAvailableRooms_NoHits_Success(t *testing.T) {
 
 	// [3] No available rooms for the given number of guests
 	query = test.DefaultRoomsQueryDTO
-	query.Location = "Room Address"
+	query.Address = "Room Address"
 	query.GuestsNumber = 9999
 
 	resp, err = findAvailableRooms(*query)
@@ -129,7 +129,7 @@ func TestIntegration_FindAvailableRooms_InvalidDate(t *testing.T) {
 	setupRooms(5)
 
 	query := test.DefaultRoomsQueryDTO
-	query.Location = "Room Address"
+	query.Address = "Room Address"
 	query.DateFrom = time.Date(2025, 10, 23, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 10, 22, 0, 0, 0, 0, time.UTC)
 
