@@ -180,7 +180,7 @@ func Test_CalculatePrice_FlatPrice_Success(t *testing.T) {
 	mockPriceRepo.AssertExpectations(t)
 }
 
-func Test_IsRoomAvailable_OverlappingAvailable_Success(t *testing.T) {
+func Test_IsRoomAvailableForOneDay_OverlappingAvailable_Success(t *testing.T) {
 	// One interval overlaps with another, choose the least one
 	svc, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
@@ -202,12 +202,12 @@ func Test_IsRoomAvailable_OverlappingAvailable_Success(t *testing.T) {
 	rules := []internal.RoomAvailabilityItem{}
 	rules = append(rules, rule1, rule2)
 
-	isAvailable := svc.IsRoomAvailable(day, rules)
+	isAvailable := svc.IsRoomAvailableForOneDay(day, rules)
 
 	assert.Equal(t, true, isAvailable)
 }
 
-func Test_IsRoomAvailable_OverlappingUnavailable_Success(t *testing.T) {
+func Test_IsRoomAvailableForOneDay_OverlappingUnavailable_Success(t *testing.T) {
 	// One interval overlaps with another, choose the least one
 	svc, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
@@ -229,12 +229,12 @@ func Test_IsRoomAvailable_OverlappingUnavailable_Success(t *testing.T) {
 	rules := []internal.RoomAvailabilityItem{}
 	rules = append(rules, rule1, rule2)
 
-	isAvailable := svc.IsRoomAvailable(day, rules)
+	isAvailable := svc.IsRoomAvailableForOneDay(day, rules)
 
 	assert.Equal(t, false, isAvailable)
 }
 
-func Test_IsRoomAvailable_NoOverlappingUnavailable_Success(t *testing.T) {
+func Test_IsRoomAvailableForOneDay_NoOverlappingUnavailable_Success(t *testing.T) {
 	// For undefined day, the room is unavailable by default
 	svc, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 1, 0, 0, 0, 0, time.UTC)
@@ -256,12 +256,12 @@ func Test_IsRoomAvailable_NoOverlappingUnavailable_Success(t *testing.T) {
 	rules := []internal.RoomAvailabilityItem{}
 	rules = append(rules, rule1, rule2)
 
-	isAvailable := svc.IsRoomAvailable(day, rules)
+	isAvailable := svc.IsRoomAvailableForOneDay(day, rules)
 
 	assert.Equal(t, false, isAvailable)
 }
 
-func Test_CanBook_UndefinedRulesUnavailable(t *testing.T) {
+func Test_IsRoomAvailable_UndefinedRulesUnavailable(t *testing.T) {
 	svc, _, mockRepo, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 20, 0, 0, 0, 0, time.UTC)
@@ -269,14 +269,14 @@ func Test_CanBook_UndefinedRulesUnavailable(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(nil, fmt.Errorf("room availability list not found"))
 
-	canBook := svc.CanBook(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
 
 	assert.Equal(t, false, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
 	mockRepo.AssertExpectations(t)
 }
 
-func Test_CanBook_OverlappingAvailable(t *testing.T) {
+func Test_IsRoomAvailable_OverlappingAvailable(t *testing.T) {
 	svc, _, mockRepo, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 18, 0, 0, 0, 0, time.UTC)
@@ -303,14 +303,14 @@ func Test_CanBook_OverlappingAvailable(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
 
-	canBook := svc.CanBook(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
 
 	assert.Equal(t, true, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
 	mockRepo.AssertExpectations(t)
 }
 
-func Test_CanBook_OverlappingAvailableAdvanced(t *testing.T) {
+func Test_IsRoomAvailable_OverlappingAvailableAdvanced(t *testing.T) {
 	svc, _, mockRepo, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 20, 0, 0, 0, 0, time.UTC)
@@ -343,14 +343,14 @@ func Test_CanBook_OverlappingAvailableAdvanced(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
 
-	canBook := svc.CanBook(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
 
 	assert.Equal(t, true, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
 	mockRepo.AssertExpectations(t)
 }
 
-func Test_CanBook_OverlappingUnavailable(t *testing.T) {
+func Test_IsRoomAvailable_OverlappingUnavailable(t *testing.T) {
 	svc, _, mockRepo, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 18, 0, 0, 0, 0, time.UTC)
@@ -377,7 +377,7 @@ func Test_CanBook_OverlappingUnavailable(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
 
-	canBook := svc.CanBook(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
 
 	assert.Equal(t, false, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
