@@ -26,44 +26,61 @@ func Test_ClearYear_Success(t *testing.T) {
 	assert.NotEqual(t, date2Res.Year(), date2.Year())
 }
 
-func Test_CheckPrice_BasePrice_Success(t *testing.T) {
+func Test_CalculatePriceForOneDay_BasePrice_Success(t *testing.T) {
 	svc, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	day = util.ClearYear(day)
 	basePrice := uint(1000)
 	rulePrice := uint(100)
+	guests := uint(4)
 
+	var rules internal.RoomPriceList = internal.RoomPriceList{
+		ID:            1,
+		RoomID:        1,
+		EffectiveFrom: time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC),
+		BasePrice:     basePrice,
+		PerGuest:      true,
+		Items:         []internal.RoomPriceItem{},
+	}
 	rule := internal.RoomPriceItem{
 		ID:       1,
 		DateFrom: time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC),
 		DateTo:   time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC),
 		Price:    rulePrice,
 	}
-	rules := []internal.RoomPriceItem{rule}
+	rules.Items = append(rules.Items, rule)
 
-	priceRes := svc.CheckPrice(day, uint(basePrice), rules)
+	priceRes := svc.CalculatePriceForOneDay(day, guests, rules)
 
-	assert.Equal(t, basePrice, priceRes)
+	assert.Equal(t, float32(guests*basePrice), priceRes)
 }
 
-func Test_CheckPrice_DefinedPriceByRule_Success(t *testing.T) {
+func Test_CalculatePriceForOneDay_DefinedPriceByRule_Success(t *testing.T) {
 	svc, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 13, 0, 0, 0, 0, time.UTC)
 	day = util.ClearYear(day)
 	basePrice := uint(1000)
 	rulePrice := uint(100)
 
+	var rules internal.RoomPriceList = internal.RoomPriceList{
+		ID:            1,
+		RoomID:        1,
+		EffectiveFrom: time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC),
+		BasePrice:     basePrice,
+		PerGuest:      false,
+		Items:         []internal.RoomPriceItem{},
+	}
 	rule := internal.RoomPriceItem{
 		ID:       1,
 		DateFrom: time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC),
 		DateTo:   time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC),
 		Price:    rulePrice,
 	}
-	rules := []internal.RoomPriceItem{rule}
+	rules.Items = append(rules.Items, rule)
 
-	priceRes := svc.CheckPrice(day, uint(basePrice), rules)
+	priceRes := svc.CalculatePriceForOneDay(day, uint(4), rules)
 
-	assert.Equal(t, rulePrice, priceRes)
+	assert.Equal(t, float32(rulePrice), priceRes)
 }
 
 func Test_CalculatePrice_UndefinedRules_Fail(t *testing.T) {
