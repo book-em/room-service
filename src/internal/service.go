@@ -27,7 +27,7 @@ type Service interface {
 	UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*RoomPriceList, error)
 
 	ClearYear(dateFrom time.Time, dateTo time.Time) (time.Time, time.Time)
-	CheckPrice(day time.Time, basePrice uint, rules []RoomPriceItem) uint
+	CalculatePriceForOneDay(day time.Time, guests uint, rules RoomPriceList) float32
 	CalculatePrice(dateFrom time.Time, dateTo time.Time, guestsNumber uint, roomId uint) (float32, bool, error)
 	IsRoomAvailable(day time.Time, rules []RoomAvailabilityItem) bool
 	CanBook(dateFrom time.Time, dateTo time.Time, roomId uint) bool
@@ -382,10 +382,10 @@ func (s *service) ClearYear(dateFrom time.Time, dateTo time.Time) (time.Time, ti
 	return dateFrom, dateTo
 }
 
-func (s *service) CheckPrice(day time.Time, basePrice uint, rules []RoomPriceItem) uint {
-	price := basePrice
+func (s *service) CalculatePriceForOneDay(day time.Time, guests uint, rules RoomPriceList) float32 {
+	price := rules.BasePrice
 
-	for _, rule := range rules {
+	for _, rule := range rules.Items {
 		rule.DateFrom, rule.DateTo = s.ClearYear(rule.DateFrom, rule.DateTo)
 
 		if !day.Before(rule.DateFrom) && !day.After(rule.DateTo) {
@@ -393,10 +393,14 @@ func (s *service) CheckPrice(day time.Time, basePrice uint, rules []RoomPriceIte
 		}
 	}
 
-	return price
+	if rules.PerGuest {
+		return float32(price * guests)
+	}
+
+	return float32(price)
 }
 
-func (s *service) CalculatePrice(dateFrom time.Time, dateTo time.Time, guestsNumber uint, roomId uint) (float32, bool, error) {
+func (s *service) CalculatePrice(dateFrom time.Time, dateTo time.Time, guests uint, roomId uint) (float32, bool, error) {
 	rules, err := s.FindCurrentPriceListOfRoom(roomId)
 	if err != nil {
 		return float32(0), false, err
@@ -406,12 +410,7 @@ func (s *service) CalculatePrice(dateFrom time.Time, dateTo time.Time, guestsNum
 	var totalPrice float32
 
 	for day := dateFrom; !day.After(dateTo); day = day.Add(24 * time.Hour) {
-		price := s.CheckPrice(day, rules.BasePrice, rules.Items)
-		if rules.PerGuest {
-			totalPrice += float32(price * guestsNumber)
-		} else {
-			totalPrice += float32(price)
-		}
+		totalPrice += s.CalculatePriceForOneDay(day, guests, *rules)
 	}
 
 	return totalPrice, rules.PerGuest, nil
