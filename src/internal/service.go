@@ -29,8 +29,8 @@ type Service interface {
 	ClearYear(dateFrom time.Time, dateTo time.Time) (time.Time, time.Time)
 	CalculatePriceForOneDay(day time.Time, guests uint, rules RoomPriceList) float32
 	CalculatePrice(dateFrom time.Time, dateTo time.Time, guestsNumber uint, roomId uint) (float32, bool, error)
-	IsRoomAvailable(day time.Time, rules []RoomAvailabilityItem) bool
-	CanBook(dateFrom time.Time, dateTo time.Time, roomId uint) bool
+	IsRoomAvailableForOneDay(day time.Time, rules []RoomAvailabilityItem) bool
+	IsRoomAvailable(dateFrom time.Time, dateTo time.Time, roomId uint) bool
 	CalculateUnitPrice(perGuest bool, guestsNumber uint, dateFrom time.Time, dateTo time.Time, totalPrice float32) float32
 	PreparePaginatedResult(hits []RoomResultDTO, pageNumber uint, pageSize uint) ([]RoomResultDTO, PaginatedResultInfoDTO)
 }
@@ -416,7 +416,7 @@ func (s *service) CalculatePrice(dateFrom time.Time, dateTo time.Time, guests ui
 	return totalPrice, rules.PerGuest, nil
 }
 
-func (s *service) IsRoomAvailable(day time.Time, rules []RoomAvailabilityItem) bool {
+func (s *service) IsRoomAvailableForOneDay(day time.Time, rules []RoomAvailabilityItem) bool {
 	leastRule := RoomAvailabilityItem{
 		DateFrom:  time.Time{}, // The zero value represents the earliest possible time
 		DateTo:    time.Now(),
@@ -436,7 +436,7 @@ func (s *service) IsRoomAvailable(day time.Time, rules []RoomAvailabilityItem) b
 	return leastRule.Available
 }
 
-func (s *service) CanBook(dateFrom time.Time, dateTo time.Time, roomId uint) bool {
+func (s *service) IsRoomAvailable(dateFrom time.Time, dateTo time.Time, roomId uint) bool {
 	dateFrom, dateTo = s.ClearYear(dateFrom, dateTo)
 
 	rules, err := s.FindCurrentAvailabilityListOfRoom(roomId)
@@ -445,7 +445,7 @@ func (s *service) CanBook(dateFrom time.Time, dateTo time.Time, roomId uint) boo
 	}
 
 	for day := dateFrom; !day.After(dateTo); day = day.Add(24 * time.Hour) {
-		if s.IsRoomAvailable(day, rules.Items) == false {
+		if s.IsRoomAvailableForOneDay(day, rules.Items) == false {
 			return false
 		}
 	}
@@ -516,7 +516,7 @@ func (s *service) FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *Pagin
 
 	var hits []RoomResultDTO
 	for _, room := range rooms {
-		canBook := s.CanBook(from, to, room.ID)
+		canBook := s.IsRoomAvailable(from, to, room.ID)
 
 		if canBook {
 			totalPrice, perGuest, err := s.CalculatePrice(from, to, dto.GuestsNumber, room.ID)
