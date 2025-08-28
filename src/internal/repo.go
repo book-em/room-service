@@ -53,7 +53,7 @@ func (r *repository) FindByHost(hostId uint) ([]Room, error) {
 
 func (r *repository) FindByFilters(guestsNumber uint, address string) ([]Room, error) {
 	var rooms []Room
-	query := r.db.Where("min_guests < ? and max_guests > ?", guestsNumber, guestsNumber)
+	query := r.db.Where("min_guests <= ? and max_guests >= ?", guestsNumber, guestsNumber)
 
 	if address != "" {
 		query = query.Where("LOWER( ? ) LIKE CONCAT('%' || LOWER(address) || '%')", address)
