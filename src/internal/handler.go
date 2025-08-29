@@ -29,6 +29,8 @@ func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.GET("/price/room/all/:id", r.handler.findPriceListsByRoomId)
 	rg.GET("/price/:id", r.handler.findPriceListById)
 	rg.POST("/price", r.handler.updatePriceList)
+
+	rg.POST("/reservation/query", r.handler.queryForReservation)
 }
 
 type Handler struct{ service Service }
@@ -188,6 +190,33 @@ func (h *Handler) updateAvailability(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, NewRoomAvailabilityListDTO(list))
+}
+
+func (h *Handler) queryForReservation(ctx *gin.Context) {
+	jwt, err := util.GetJwt(ctx)
+	if err != nil {
+		AbortError(ctx, ErrUnauthenticated)
+		return
+	}
+
+	if jwt.Role != userclient.Guest {
+		AbortError(ctx, ErrUnauthorized)
+		return
+	}
+
+	var dto RoomReservationQueryDTO
+	if err := ctx.ShouldBindJSON(&dto); err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	result, err := h.service.QueryForReservation(jwt.ID, dto)
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, result)
 }
 
 func (h *Handler) findCurrentPriceListOfRoom(ctx *gin.Context) {
