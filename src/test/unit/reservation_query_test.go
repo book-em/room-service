@@ -29,7 +29,7 @@ func Test_QueryForReservation_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.True(t, resp.Available)
-	assert.Equal(t, uint(400), resp.TotalCost) // 2 days × 100 × 2 guests
+	assert.Equal(t, uint(400), resp.TotalCost) // 2 days × 100 x 2 guests
 
 	mockUserClient.AssertExpectations(t)
 	mockRoomRepo.AssertExpectations(t)
