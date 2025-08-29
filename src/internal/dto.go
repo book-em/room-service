@@ -204,3 +204,17 @@ func NewRoomsResultDTO(hits []RoomResultDTO, info PaginatedResultInfoDTO) RoomsR
 		Info: info,
 	}
 }
+
+// --------------------------------------------------------
+
+type RoomReservationQueryDTO struct {
+	RoomID     uint      `json:"roomId"`
+	DateFrom   time.Time `json:"dateFrom"`
+	DateTo     time.Time `json:"dateTo"`
+	GuestCount uint      `json:"guestCount"`
+}
+
+type RoomReservationQueryResponseDTO struct {
+	Available bool `json:"available"`
+	TotalCost uint `json:"totalCost"`
+}

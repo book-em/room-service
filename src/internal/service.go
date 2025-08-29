@@ -27,12 +27,30 @@ type Service interface {
 	UpdatePriceList(callerID uint, dto CreateRoomPriceListDTO) (*RoomPriceList, error)
 
 	ClearYear(dateFrom time.Time, dateTo time.Time) (time.Time, time.Time)
+	// CalculatePriceForOneDay computes the price for the room for a single night.
+	// If the room is priced by guest, then the resulting price is multiplied by the number of guests.
+	//
+	// In other words, this is the total price for a single night. If you want the price for a single
+	// guest, you need to determine if the room is priced per guest and if so, divide by the number of
+	// guests.
+	//
+	// TODO: This should NOT return float32.
 	CalculatePriceForOneDay(day time.Time, guests uint, rules RoomPriceList) float32
+	// CalculatePrice calculates the price of the room between dateFrom and dateTo.
+	//
+	// It's assumed that the room can be booked in this date range.
+	// Returns the total price, whether the price is flat or per guest and any error.
+	// If the room is priced per guest, the returned price is the total price for all guests.
+	// So if you want the price for a single guest, divide by the number of guests.
+	//
+	// TODO: This should NOT return float32.
 	CalculatePrice(dateFrom time.Time, dateTo time.Time, guestsNumber uint, roomId uint) (float32, bool, error)
 	IsRoomAvailableForOneDay(day time.Time, rules []RoomAvailabilityItem) bool
 	IsRoomAvailable(dateFrom time.Time, dateTo time.Time, roomId uint) bool
 	CalculateUnitPrice(perGuest bool, guestsNumber uint, dateFrom time.Time, dateTo time.Time, totalPrice float32) float32
 	PreparePaginatedResult(hits []RoomResultDTO, pageNumber uint, pageSize uint) ([]RoomResultDTO, PaginatedResultInfoDTO)
+
+	QueryForReservation(callerID uint, dto RoomReservationQueryDTO) (*RoomReservationQueryResponseDTO, error)
 }
 
 type service struct {
@@ -532,4 +550,54 @@ func (s *service) FindAvailableRooms(dto RoomsQueryDTO) ([]RoomResultDTO, *Pagin
 	hits, resultInfo := s.PreparePaginatedResult(hits, dto.PageNumber, dto.PageSize)
 
 	return hits, &resultInfo, nil
+}
+
+func (s *service) QueryForReservation(callerID uint, dto RoomReservationQueryDTO) (*RoomReservationQueryResponseDTO, error) {
+	log.Printf("[1] User exists")
+	log.Printf("%d", callerID)
+
+	caller, err := s.userClient.FindById(callerID)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[2] User is guest")
+
+	if caller.Role != string(userclient.Guest) {
+		log.Printf("Unauthorized (bad role %s)", caller.Role)
+		return nil, ErrUnauthorized
+	}
+
+	log.Printf("[3] Room exists")
+
+	room, err := s.FindById(dto.RoomID)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[4] Find room availability")
+
+	isAvailable := s.IsRoomAvailable(dto.DateFrom, dto.DateTo, room.ID)
+
+	if !isAvailable {
+		log.Printf("[4.1] Room cannot be booked at this date range - returning early")
+
+		return &RoomReservationQueryResponseDTO{
+			Available: isAvailable,
+			TotalCost: 0,
+		}, nil
+	}
+
+	log.Printf("[5] Find price for this reservation")
+
+	fullPrice, _, err := s.CalculatePrice(dto.DateFrom, dto.DateTo, dto.GuestCount, room.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &RoomReservationQueryResponseDTO{
+		Available: isAvailable,
+		TotalCost: uint(fullPrice), // TODO: Remove this cast once CalculatePrice returns uint.
+	}, nil
 }
