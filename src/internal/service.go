@@ -401,12 +401,13 @@ func (s *service) ClearYear(dateFrom time.Time, dateTo time.Time) (time.Time, ti
 }
 
 func (s *service) CalculatePriceForOneDay(day time.Time, guests uint, rules RoomPriceList) float32 {
+	normalizedDay := util.ClearYear(day)
 	price := rules.BasePrice
 
 	for _, rule := range rules.Items {
 		rule.DateFrom, rule.DateTo = s.ClearYear(rule.DateFrom, rule.DateTo)
 
-		if !day.Before(rule.DateFrom) && !day.After(rule.DateTo) {
+		if !normalizedDay.Before(rule.DateFrom) && !normalizedDay.After(rule.DateTo) {
 			price = rule.Price
 		}
 	}
@@ -484,7 +485,6 @@ func (s *service) CalculateUnitPrice(perGuest bool, guestsNumber uint, dateFrom 
 }
 
 func (s *service) PreparePaginatedResult(hits []RoomResultDTO, pageNumber uint, pageSize uint) ([]RoomResultDTO, PaginatedResultInfoDTO) {
-
 	totalHits := len(hits)
 	totalPages := uint(math.Ceil(float64(totalHits) / float64(pageSize)))
 	startIdx := uint((pageNumber - 1) * pageSize)
