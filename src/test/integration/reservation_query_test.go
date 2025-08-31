@@ -50,7 +50,7 @@ func TestIntegration_QueryForReservation_Success(t *testing.T) {
 	defer resp.Body.Close()
 
 	// [Step 6] Validate response
-	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)

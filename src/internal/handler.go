@@ -216,7 +216,7 @@ func (h *Handler) queryForReservation(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, result)
+	ctx.JSON(http.StatusOK, result)
 }
 
 func (h *Handler) findCurrentPriceListOfRoom(ctx *gin.Context) {
