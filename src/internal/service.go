@@ -442,10 +442,12 @@ func (s *service) IsRoomAvailableForOneDay(day time.Time, rules []RoomAvailabili
 		Available: false,
 	}
 
+	dayNormalized := util.ClearYear(day)
+
 	for _, rule := range rules {
 		rule.DateFrom, rule.DateTo = s.ClearYear(rule.DateFrom, rule.DateTo)
 
-		if !day.Before(rule.DateFrom) && !day.After(rule.DateTo) {
+		if !dayNormalized.Before(rule.DateFrom) && !dayNormalized.After(rule.DateTo) {
 			if rule.DateTo.Sub(rule.DateFrom) < leastRule.DateTo.Sub(leastRule.DateFrom) {
 				leastRule = rule
 			}
