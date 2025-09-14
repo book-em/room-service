@@ -39,13 +39,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build Docker image for room-service
         run: |
           docker build -t ${{ secrets.ROOM_SERVICE_NAME }}:${{ env.VERSION }} ./src
 
-      - name: Push Docker image
+      - name: Push Docker image for room-service
         run: |
           docker push ${{ secrets.ROOM_SERVICE_NAME }}:${{ env.VERSION }}
+    
+      - name: Build Docker image for room-images-server
+        run: |
+          docker build -t ${{ secrets.ROOM_IMAGES_SERVER_NAME }}:${{ env.VERSION }} ./nginx
+
+      - name: Push Docker image for room-images-server
+        run: |
+          docker push ${{ secrets.ROOM_IMAGES_SERVER_NAME }}:${{ env.VERSION }}
     
       - name: Push tag
         run: |
