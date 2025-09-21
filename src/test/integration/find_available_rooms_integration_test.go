@@ -18,7 +18,6 @@ func TestIntegration_FindAvailableRooms_Success(t *testing.T) {
 	query.Address = "Room Address"
 	query.DateFrom = time.Date(2025, 8, 22, 0, 0, 0, 0, time.UTC)
 	query.DateTo = time.Date(2025, 8, 23, 0, 0, 0, 0, time.UTC)
-
 	resp, err := findAvailableRooms(*query)
 	result := responseToFindAvailableRooms(resp)
 
