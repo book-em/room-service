@@ -11,6 +11,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -108,12 +109,17 @@ func findRoomById(id uint) (*http.Response, error) {
 }
 
 func findAvailableRooms(dto internal.RoomsQueryDTO) (*http.Response, error) {
-	jsonBytes, err := json.Marshal(dto)
-	if err != nil {
-		return nil, err
-	}
+	params := url.Values{}
+	val, _ := dto.DateFrom.UTC().MarshalText()
+	params.Add("dateFrom", string(val))
+	val, _ = dto.DateTo.UTC().MarshalText()
+	params.Add("dateTo", string(val))
+	params.Add("address", dto.Address)
+	params.Add("guestsNumber", fmt.Sprintf("%d", dto.GuestsNumber))
+	params.Add("pageNumber", fmt.Sprintf("%d", dto.PageNumber))
+	params.Add("pageSize", fmt.Sprintf("%d", dto.PageSize))
 
-	req, err := http.NewRequest(http.MethodGet, url_room+"all", bytes.NewBuffer(jsonBytes))
+	req, err := http.NewRequest(http.MethodGet, url_room+"all?"+params.Encode(), nil)
 	if err != nil {
 		return nil, err
 	}

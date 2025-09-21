@@ -154,12 +154,12 @@ func NewRoomPriceItemDTO(item RoomPriceItem) RoomPriceItemDTO {
 }
 
 type RoomsQueryDTO struct {
-	Address      string    `json:"address"`
-	GuestsNumber uint      `json:"guestsNumber" binding:"required,min=1"`
-	DateFrom     time.Time `json:"dateFrom" binding:"required"`
-	DateTo       time.Time `json:"dateTo" binding:"required"`
-	PageNumber   uint      `json:"pageNumber" binding:"required,min=1"`
-	PageSize     uint      `json:"pageSize" binding:"required,min=1"`
+	Address      string    `form:"address"`
+	GuestsNumber uint      `form:"guestsNumber" binding:"required,min=1"`
+	DateFrom     time.Time `form:"dateFrom" binding:"required"`
+	DateTo       time.Time `form:"dateTo" binding:"required"`
+	PageNumber   uint      `form:"pageNumber" binding:"required,min=1"`
+	PageSize     uint      `form:"pageSize" binding:"required,min=1"`
 }
 
 type PaginatedResultInfoDTO struct {

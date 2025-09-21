@@ -305,7 +305,7 @@ func (h *Handler) updatePriceList(ctx *gin.Context) {
 func (h *Handler) findAvailableRooms(ctx *gin.Context) {
 
 	var dto RoomsQueryDTO
-	if err := ctx.ShouldBindJSON(&dto); err != nil {
+	if err := ctx.ShouldBindQuery(&dto); err != nil {
 		AbortError(ctx, err)
 		return
 	}
