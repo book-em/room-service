@@ -2,6 +2,7 @@ package test
 
 import (
 	"bookem-room-service/internal"
+	"context"
 	"fmt"
 	"testing"
 
@@ -25,7 +26,7 @@ func Test_FindByHost_Success(t *testing.T) {
 	mockUserClient.On("FindById", host.Id).Return(host, nil)
 	mockRepo.On("FindByHost", host.Id).Return(rooms, nil)
 
-	roomsGot, err := svc.FindByHost(host.Id)
+	roomsGot, err := svc.FindByHost(context.Background(), host.Id)
 
 	assert.NoError(t, err)
 	assert.Equal(t, rooms, roomsGot)
@@ -41,7 +42,7 @@ func Test_FindByHost_UserNotFound(t *testing.T) {
 	hostId := uint(123)
 	mockUserClient.On("FindById", hostId).Return(nil, fmt.Errorf("user not found"))
 
-	roomsGot, err := svc.FindByHost(hostId)
+	roomsGot, err := svc.FindByHost(context.Background(), hostId)
 
 	assert.Error(t, err)
 	assert.Nil(t, roomsGot)
@@ -55,7 +56,7 @@ func Test_FindByHost_UserNotHost(t *testing.T) {
 	notHost := DefaultUser_Guest
 	mockUserClient.On("FindById", notHost.Id).Return(notHost, nil)
 
-	roomsGot, err := svc.FindByHost(notHost.Id)
+	roomsGot, err := svc.FindByHost(context.Background(), notHost.Id)
 
 	assert.Error(t, err)
 	assert.Nil(t, roomsGot)
@@ -71,7 +72,7 @@ func Test_FindByHost_DbError(t *testing.T) {
 	mockUserClient.On("FindById", host.Id).Return(host, nil)
 	mockRepo.On("FindByHost", host.Id).Return(nil, fmt.Errorf("db error"))
 
-	roomsGot, err := svc.FindByHost(host.Id)
+	roomsGot, err := svc.FindByHost(context.Background(), host.Id)
 
 	assert.Error(t, err)
 	assert.Nil(t, roomsGot)

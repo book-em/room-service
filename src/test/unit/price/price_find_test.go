@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/internal"
 	. "bookem-room-service/test/unit"
+	"context"
 	"fmt"
 	"testing"
 
@@ -16,7 +17,7 @@ func Test_FindPriceListById_Success(t *testing.T) {
 
 	mockPriceRepo.On("FindListById", list.ID).Return(list, nil)
 
-	listGot, err := svc.FindPriceListById(list.ID)
+	listGot, err := svc.FindPriceListById(context.Background(), list.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, list, listGot)
@@ -29,7 +30,7 @@ func Test_FindPriceListById_NotFound(t *testing.T) {
 
 	mockPriceRepo.On("FindListById", uint(999)).Return(nil, fmt.Errorf("not found"))
 
-	listGot, err := svc.FindPriceListById(999)
+	listGot, err := svc.FindPriceListById(context.Background(), 999)
 
 	assert.Error(t, err)
 	assert.Nil(t, listGot)
@@ -55,7 +56,7 @@ func Test_FindPriceListsByRoomId_Success(t *testing.T) {
 	mockRepo.On("FindById", room.ID).Return(room, nil)
 	mockPriceRepo.On("FindListsByRoomId", room.ID).Return(lists, nil)
 
-	listsGot, err := svc.FindPriceListsByRoomId(room.ID)
+	listsGot, err := svc.FindPriceListsByRoomId(context.Background(), room.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, lists, listsGot)
@@ -72,7 +73,7 @@ func Test_FindPriceListsByRoomId_Success_NoLists(t *testing.T) {
 	mockRepo.On("FindById", room.ID).Return(room, nil)
 	mockPriceRepo.On("FindListsByRoomId", room.ID).Return([]internal.RoomPriceList{}, nil)
 
-	listsGot, err := svc.FindPriceListsByRoomId(room.ID)
+	listsGot, err := svc.FindPriceListsByRoomId(context.Background(), room.ID)
 
 	assert.NoError(t, err)
 	assert.Empty(t, listsGot)
@@ -89,7 +90,7 @@ func Test_FindPriceListsByRoomId_NotFound(t *testing.T) {
 	mockRepo.On("FindById", room.ID).Return(room, nil)
 	mockPriceRepo.On("FindListsByRoomId", room.ID).Return(nil, fmt.Errorf("not found"))
 
-	listsGot, err := svc.FindPriceListsByRoomId(room.ID)
+	listsGot, err := svc.FindPriceListsByRoomId(context.Background(), room.ID)
 
 	assert.Error(t, err)
 	assert.Nil(t, listsGot)
@@ -102,7 +103,7 @@ func Test_FindPriceListsByRoomId_RoomNotFound(t *testing.T) {
 
 	mockRepo.On("FindById", uint(999)).Return(nil, fmt.Errorf("not found"))
 
-	listsGot, err := svc.FindPriceListsByRoomId(999)
+	listsGot, err := svc.FindPriceListsByRoomId(context.Background(), 999)
 
 	assert.Error(t, err)
 	assert.Nil(t, listsGot)
@@ -116,7 +117,7 @@ func Test_FindCurrentPriceListOfRoom_Success(t *testing.T) {
 
 	mockPriceRepo.On("FindCurrentListOfRoom", list.RoomID).Return(list, nil)
 
-	listGot, err := svc.FindCurrentPriceListOfRoom(list.RoomID)
+	listGot, err := svc.FindCurrentPriceListOfRoom(context.Background(), list.RoomID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, list, listGot)
@@ -128,7 +129,7 @@ func Test_FindCurrentPriceListOfRoom_NotFound(t *testing.T) {
 
 	mockPriceRepo.On("FindCurrentListOfRoom", uint(999)).Return(nil, fmt.Errorf("not found"))
 
-	listGot, err := svc.FindCurrentPriceListOfRoom(999)
+	listGot, err := svc.FindCurrentPriceListOfRoom(context.Background(), 999)
 
 	assert.Error(t, err)
 	assert.Nil(t, listGot)
