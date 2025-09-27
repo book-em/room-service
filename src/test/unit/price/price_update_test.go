@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/internal"
 	. "bookem-room-service/test/unit"
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func Test_UpdatePriceList_Success(t *testing.T) {
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 	mockPriceRepo.On("CreateList", mock.Anything).Return(nil)
 
-	got, err := svc.UpdatePriceList(user.Id, dto)
+	got, err := svc.UpdatePriceList(context.Background(), user.Id, dto)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, got)
@@ -40,7 +41,7 @@ func Test_UpdatePriceList_UserNotFound(t *testing.T) {
 
 	mockUserClient.On("FindById", hostID).Return(nil, fmt.Errorf("not found"))
 
-	got, err := svc.UpdatePriceList(hostID, dto)
+	got, err := svc.UpdatePriceList(context.Background(), hostID, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -55,7 +56,7 @@ func Test_UpdatePriceList_UserNotHost(t *testing.T) {
 
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 
-	got, err := svc.UpdatePriceList(user.Id, dto)
+	got, err := svc.UpdatePriceList(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -71,7 +72,7 @@ func Test_UpdatePriceList_RoomNotFound(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(nil, fmt.Errorf("not found"))
 
-	got, err := svc.UpdatePriceList(user.Id, dto)
+	got, err := svc.UpdatePriceList(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -90,7 +91,7 @@ func Test_UpdatePriceList_HostNotOwnRoom(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
-	got, err := svc.UpdatePriceList(user.Id, dto)
+	got, err := svc.UpdatePriceList(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -119,7 +120,7 @@ func Test_UpdatePriceList_BadDateRange(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
-	got, err := svc.UpdatePriceList(user.Id, dto)
+	got, err := svc.UpdatePriceList(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -153,7 +154,7 @@ func Test_UpdatePriceList_IntersectingDateRange(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
-	got, err := svc.UpdatePriceList(user.Id, dto)
+	got, err := svc.UpdatePriceList(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -187,7 +188,7 @@ func Test_UpdatePriceList_TouchingDateRange(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
-	got, err := svc.UpdatePriceList(user.Id, dto)
+	got, err := svc.UpdatePriceList(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
