@@ -83,7 +83,11 @@ func (t *Telemetry) Top() SpanPair {
 }
 
 func (t *Telemetry) Ctx() context.Context {
+	if len(t.SpanStack) > 0 {
 		return t.Top().Ctx
+	} else {
+		return context.Background() // Ehh...
+	}
 }
 
 func (t *Telemetry) Event(msg string, err error) {
