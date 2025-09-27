@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/internal"
 	"bookem-room-service/util"
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -16,7 +17,7 @@ func Test_ClearYear_Success(t *testing.T) {
 	date1 := time.Now()
 	date2 := time.Now().Add(24 * time.Hour)
 
-	date1Res, date2Res := svc.ClearYear(date1, date2)
+	date1Res, date2Res := svc.ClearYear(context.Background(), date1, date2)
 
 	assert.Equal(t, date1Res.Day(), date1.Day())
 	assert.Equal(t, date1Res.Month(), date1.Month())
@@ -50,7 +51,7 @@ func Test_CalculatePriceForOneDay_BasePrice_Success(t *testing.T) {
 	}
 	rules.Items = append(rules.Items, rule)
 
-	priceRes := svc.CalculatePriceForOneDay(day, guests, rules)
+	priceRes := svc.CalculatePriceForOneDay(context.Background(), day, guests, rules)
 
 	assert.Equal(t, float32(guests*basePrice), priceRes)
 }
@@ -78,7 +79,7 @@ func Test_CalculatePriceForOneDay_DefinedPriceByRule_Success(t *testing.T) {
 	}
 	rules.Items = append(rules.Items, rule)
 
-	priceRes := svc.CalculatePriceForOneDay(day, uint(4), rules)
+	priceRes := svc.CalculatePriceForOneDay(context.Background(), day, uint(4), rules)
 
 	assert.Equal(t, float32(rulePrice), priceRes)
 }
@@ -91,7 +92,7 @@ func Test_CalculatePrice_UndefinedRules_Fail(t *testing.T) {
 	roomId := uint(1)
 
 	mockPriceRepo.On("FindCurrentListOfRoom", roomId).Return(nil, fmt.Errorf("not found"))
-	totalPrice, perGuest, err := svc.CalculatePrice(dateFrom, dateTo, guestsNumber, roomId)
+	totalPrice, perGuest, err := svc.CalculatePrice(context.Background(), dateFrom, dateTo, guestsNumber, roomId)
 
 	assert.Error(t, err)
 	assert.Equal(t, float32(0), totalPrice)
@@ -130,7 +131,7 @@ func Test_CalculatePrice_PerGuest_Success(t *testing.T) {
 	rules.Items = append(rules.Items, rule1, rule2)
 
 	mockPriceRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
-	totalPrice, perGuest, err := svc.CalculatePrice(dateFrom, dateTo, guestsNumber, roomId)
+	totalPrice, perGuest, err := svc.CalculatePrice(context.Background(), dateFrom, dateTo, guestsNumber, roomId)
 
 	assert.NoError(t, err)
 	// 5 x 100 x 2  +  5 x 300 x 2  +  5 x 200 x 2  =  6000
@@ -170,7 +171,7 @@ func Test_CalculatePrice_FlatPrice_Success(t *testing.T) {
 	rules.Items = append(rules.Items, rule1, rule2)
 
 	mockPriceRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
-	totalPrice, perGuest, err := svc.CalculatePrice(dateFrom, dateTo, guestsNumber, roomId)
+	totalPrice, perGuest, err := svc.CalculatePrice(context.Background(), dateFrom, dateTo, guestsNumber, roomId)
 
 	assert.NoError(t, err)
 	// 5 x 100  +  5 x 300  +  5 x 200  =  3000
@@ -202,7 +203,7 @@ func Test_IsRoomAvailableForOneDay_OverlappingAvailable_Success(t *testing.T) {
 	rules := []internal.RoomAvailabilityItem{}
 	rules = append(rules, rule1, rule2)
 
-	isAvailable := svc.IsRoomAvailableForOneDay(day, rules)
+	isAvailable := svc.IsRoomAvailableForOneDay(context.Background(), day, rules)
 
 	assert.Equal(t, true, isAvailable)
 }
@@ -229,7 +230,7 @@ func Test_IsRoomAvailableForOneDay_OverlappingUnavailable_Success(t *testing.T) 
 	rules := []internal.RoomAvailabilityItem{}
 	rules = append(rules, rule1, rule2)
 
-	isAvailable := svc.IsRoomAvailableForOneDay(day, rules)
+	isAvailable := svc.IsRoomAvailableForOneDay(context.Background(), day, rules)
 
 	assert.Equal(t, false, isAvailable)
 }
@@ -256,7 +257,7 @@ func Test_IsRoomAvailableForOneDay_NoOverlappingUnavailable_Success(t *testing.T
 	rules := []internal.RoomAvailabilityItem{}
 	rules = append(rules, rule1, rule2)
 
-	isAvailable := svc.IsRoomAvailableForOneDay(day, rules)
+	isAvailable := svc.IsRoomAvailableForOneDay(context.Background(), day, rules)
 
 	assert.Equal(t, false, isAvailable)
 }
@@ -269,7 +270,7 @@ func Test_IsRoomAvailable_UndefinedRulesUnavailable(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(nil, fmt.Errorf("room availability list not found"))
 
-	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(context.Background(), dateFrom, dateTo, roomId)
 
 	assert.Equal(t, false, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
@@ -303,7 +304,7 @@ func Test_IsRoomAvailable_OverlappingAvailable(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
 
-	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(context.Background(), dateFrom, dateTo, roomId)
 
 	assert.Equal(t, true, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
@@ -343,7 +344,7 @@ func Test_IsRoomAvailable_OverlappingAvailableAdvanced(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
 
-	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(context.Background(), dateFrom, dateTo, roomId)
 
 	assert.Equal(t, true, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
@@ -377,7 +378,7 @@ func Test_IsRoomAvailable_OverlappingUnavailable(t *testing.T) {
 
 	mockRepo.On("FindCurrentListOfRoom", roomId).Return(&rules, nil)
 
-	canBook := svc.IsRoomAvailable(dateFrom, dateTo, roomId)
+	canBook := svc.IsRoomAvailable(context.Background(), dateFrom, dateTo, roomId)
 
 	assert.Equal(t, false, canBook)
 	mockRepo.AssertNumberOfCalls(t, "FindCurrentListOfRoom", 1)
@@ -392,7 +393,7 @@ func Test_CalculateUnitPricePerGuest(t *testing.T) {
 	dateTo := time.Date(2025, 8, 19, 0, 0, 0, 0, time.UTC)
 	totalPrice := float32(10000)
 
-	unitPrice := svc.CalculateUnitPrice(perGuest, guestsNumber, dateFrom, dateTo, totalPrice)
+	unitPrice := svc.CalculateUnitPrice(context.Background(), perGuest, guestsNumber, dateFrom, dateTo, totalPrice)
 
 	// 10000 / 10 / 2  =  500
 	assert.Equal(t, float32(500), unitPrice)
@@ -406,7 +407,7 @@ func Test_CalculateUnitPriceFlat(t *testing.T) {
 	dateTo := time.Date(2025, 8, 19, 0, 0, 0, 0, time.UTC)
 	totalPrice := float32(10000)
 
-	unitPrice := svc.CalculateUnitPrice(perGuest, guestsNumber, dateFrom, dateTo, totalPrice)
+	unitPrice := svc.CalculateUnitPrice(context.Background(), perGuest, guestsNumber, dateFrom, dateTo, totalPrice)
 
 	// 10000 / 10  =  1000
 	assert.Equal(t, float32(1000), unitPrice)
@@ -422,7 +423,7 @@ func Test_PreparePaginatedResult_Success(t *testing.T) {
 		hits = append(hits, *DefaultRoomResult)
 	}
 
-	hitsResult, resultInfo := svc.PreparePaginatedResult(hits, pageNumber, pageSize)
+	hitsResult, resultInfo := svc.PreparePaginatedResult(context.Background(), hits, pageNumber, pageSize)
 
 	assert.Equal(t, pageNumber, resultInfo.Page)
 	assert.Equal(t, pageSize, resultInfo.PageSize)
@@ -442,7 +443,7 @@ func Test_PreparePaginatedResult_OutOfMargin(t *testing.T) {
 		hits = append(hits, *DefaultRoomResult)
 	}
 
-	hitsResult, resultInfo := svc.PreparePaginatedResult(hits, pageNumber, pageSize)
+	hitsResult, resultInfo := svc.PreparePaginatedResult(context.Background(), hits, pageNumber, pageSize)
 
 	assert.Equal(t, pageNumber, resultInfo.Page)
 	assert.Equal(t, pageSize, resultInfo.PageSize)
@@ -463,7 +464,7 @@ func Test_PreparePaginatedResult_LastPage(t *testing.T) {
 		hits = append(hits, *DefaultRoomResult)
 	}
 
-	hitsResult, resultInfo := svc.PreparePaginatedResult(hits, pageNumber, pageSize)
+	hitsResult, resultInfo := svc.PreparePaginatedResult(context.Background(), hits, pageNumber, pageSize)
 
 	assert.Equal(t, pageNumber, resultInfo.Page)
 	assert.Equal(t, pageSize, resultInfo.PageSize)
@@ -481,7 +482,7 @@ func Test_FindAvailableRooms_InvalidDate(t *testing.T) {
 	d := *DefaultRoomsQueryDTO
 	d.DateFrom = d.DateTo.Add(24 * time.Hour)
 
-	roomsGot, infoGot, err := svc.FindAvailableRooms(d)
+	roomsGot, infoGot, err := svc.FindAvailableRooms(context.Background(), d)
 
 	assert.Nil(t, roomsGot)
 	assert.Nil(t, infoGot)
@@ -497,7 +498,7 @@ func Test_FindAvailableRooms_DbError(t *testing.T) {
 
 	mockRepo.On("FindByFilters", d.GuestsNumber, d.Address).Return(nil, fmt.Errorf("db error"))
 
-	roomsGot, infoGot, err := svc.FindAvailableRooms(d)
+	roomsGot, infoGot, err := svc.FindAvailableRooms(context.Background(), d)
 
 	assert.Nil(t, roomsGot)
 	assert.Nil(t, infoGot)
@@ -625,7 +626,7 @@ func Test_FindAvailableRooms_Success(t *testing.T) {
 	query.Address = "none"
 	mockRepo.On("FindByFilters", query.GuestsNumber, query.Address).Return(nil, nil)
 
-	roomsGot, infoGot, err := svc.FindAvailableRooms(query)
+	roomsGot, infoGot, err := svc.FindAvailableRooms(context.Background(), query)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(roomsGot))
@@ -642,7 +643,7 @@ func Test_FindAvailableRooms_Success(t *testing.T) {
 	query.Address = "none"
 	mockRepo.On("FindByFilters", query.GuestsNumber, query.Address).Return(nil, nil)
 
-	roomsGot, infoGot, err = svc.FindAvailableRooms(query)
+	roomsGot, infoGot, err = svc.FindAvailableRooms(context.Background(), query)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(roomsGot))
@@ -663,7 +664,7 @@ func Test_FindAvailableRooms_Success(t *testing.T) {
 	mockPriceRepo.On("FindCurrentListOfRoom", room1.ID).Return(&priceRules1, nil)
 	mockPriceRepo.On("FindCurrentListOfRoom", room2.ID).Return(&priceRules2, nil)
 
-	roomsGot, infoGot, err = svc.FindAvailableRooms(query)
+	roomsGot, infoGot, err = svc.FindAvailableRooms(context.Background(), query)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(roomsGot))
@@ -684,7 +685,7 @@ func Test_FindAvailableRooms_Success(t *testing.T) {
 	mockPriceRepo.On("FindCurrentListOfRoom", room1.ID).Return(&priceRules1, nil)
 	mockPriceRepo.On("FindCurrentListOfRoom", room2.ID).Return(&priceRules2, nil)
 
-	roomsGot, infoGot, err = svc.FindAvailableRooms(query)
+	roomsGot, infoGot, err = svc.FindAvailableRooms(context.Background(), query)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(roomsGot))

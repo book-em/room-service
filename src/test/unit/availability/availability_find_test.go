@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/internal"
 	. "bookem-room-service/test/unit"
+	"context"
 	"fmt"
 	"testing"
 
@@ -16,7 +17,7 @@ func Test_FindAvailabilityListById_Success(t *testing.T) {
 
 	mockAvailRepo.On("FindListById", li.ID).Return(li, nil)
 
-	liGot, err := svc.FindAvailabilityListById(li.ID)
+	liGot, err := svc.FindAvailabilityListById(context.Background(), li.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, li, liGot)
@@ -31,7 +32,7 @@ func Test_FindAvailabilityListById_NotFound(t *testing.T) {
 
 	mockAvailRepo.On("FindListById", li.ID).Return(nil, fmt.Errorf("not found"))
 
-	liGot, err := svc.FindAvailabilityListById(li.ID)
+	liGot, err := svc.FindAvailabilityListById(context.Background(), li.ID)
 
 	assert.Error(t, err)
 	assert.Nil(t, liGot)
@@ -56,7 +57,7 @@ func Test_FindAvailabilityListsByRoomId_Success(t *testing.T) {
 	mockAvailRepo.On("FindListsByRoomId", li1.RoomID).Return(lists, nil)
 	mockRepo.On("FindById", room.ID).Return(room, nil)
 
-	listsGot, err := svc.FindAvailabilityListsByRoomId(room.ID)
+	listsGot, err := svc.FindAvailabilityListsByRoomId(context.Background(), room.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, lists, listsGot)
@@ -76,7 +77,7 @@ func Test_FindAvailabilityListsByRoomId_Success_NoLists(t *testing.T) {
 	mockAvailRepo.On("FindListsByRoomId", uint(999)).Return(lists, nil)
 	mockRepo.On("FindById", room.ID).Return(room, nil)
 
-	listsGot, err := svc.FindAvailabilityListsByRoomId(uint(999))
+	listsGot, err := svc.FindAvailabilityListsByRoomId(context.Background(), uint(999))
 
 	assert.NoError(t, err)
 	assert.Equal(t, lists, listsGot)
@@ -97,7 +98,7 @@ func Test_FindAvailabilityListsByRoomId_NotFound(t *testing.T) {
 	mockAvailRepo.On("FindListsByRoomId", li.RoomID).Return(nil, fmt.Errorf("not found"))
 	mockRepo.On("FindById", room.ID).Return(room, nil)
 
-	liGot, err := svc.FindAvailabilityListsByRoomId(li.RoomID)
+	liGot, err := svc.FindAvailabilityListsByRoomId(context.Background(), li.RoomID)
 
 	assert.Error(t, err)
 	assert.Nil(t, liGot)
@@ -113,7 +114,7 @@ func Test_FindAvailabilityListsByRoomId_RoomNotFound(t *testing.T) {
 
 	mockRepo.On("FindById", li.RoomID).Return(nil, fmt.Errorf("not found"))
 
-	liGot, err := svc.FindAvailabilityListsByRoomId(li.RoomID)
+	liGot, err := svc.FindAvailabilityListsByRoomId(context.Background(), li.RoomID)
 
 	assert.Error(t, err)
 	assert.Nil(t, liGot)
@@ -127,7 +128,7 @@ func Test_FindCurrentAvailabilityListOfRoom_Success(t *testing.T) {
 
 	mockAvailRepo.On("FindCurrentListOfRoom", li.RoomID).Return(li, nil)
 
-	liGot, err := svc.FindCurrentAvailabilityListOfRoom(li.RoomID)
+	liGot, err := svc.FindCurrentAvailabilityListOfRoom(context.Background(), li.RoomID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, li, liGot)
@@ -142,7 +143,7 @@ func Test_FindCurrentAvailabilityListOfRoom_NotFound(t *testing.T) {
 
 	mockAvailRepo.On("FindCurrentListOfRoom", li.RoomID).Return(nil, fmt.Errorf("not found"))
 
-	liGot, err := svc.FindCurrentAvailabilityListOfRoom(li.RoomID)
+	liGot, err := svc.FindCurrentAvailabilityListOfRoom(context.Background(), li.RoomID)
 
 	assert.Error(t, err)
 	assert.Nil(t, liGot)
