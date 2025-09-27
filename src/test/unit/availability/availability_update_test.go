@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/internal"
 	. "bookem-room-service/test/unit"
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func Test_UpdateAvailability_Success(t *testing.T) {
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 	mockAvailRepo.On("CreateList", mock.Anything).Return(nil)
 
-	got, err := svc.UpdateAvailability(user.Id, dto)
+	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, got)
@@ -40,7 +41,7 @@ func Test_UpdateAvailability_UserNotFound(t *testing.T) {
 
 	mockUserClient.On("FindById", hostID).Return(nil, fmt.Errorf("not found"))
 
-	got, err := svc.UpdateAvailability(hostID, dto)
+	got, err := svc.UpdateAvailability(context.Background(), hostID, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -55,7 +56,7 @@ func Test_UpdateAvailability_UserNotHost(t *testing.T) {
 
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 
-	got, err := svc.UpdateAvailability(user.Id, dto)
+	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -71,7 +72,7 @@ func Test_UpdateAvailability_RoomNotFound(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(nil, fmt.Errorf("not found"))
 
-	got, err := svc.UpdateAvailability(user.Id, dto)
+	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -90,7 +91,7 @@ func Test_UpdateAvailability_HostNotOwnRoom(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
-	got, err := svc.UpdateAvailability(user.Id, dto)
+	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -123,7 +124,7 @@ func Test_UpdateAvailability_BadDateRange(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
-	got, err := svc.UpdateAvailability(user.Id, dto)
+	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -146,7 +147,7 @@ func Test_UpdateAvailability_DuplicateDateRange(t *testing.T) {
 	mockUserClient.On("FindById", user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
-	got, err := svc.UpdateAvailability(user.Id, dto)
+	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
@@ -166,7 +167,7 @@ func Test_UpdateAvailability_DBError(t *testing.T) {
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 	mockAvailRepo.On("CreateList", mock.Anything).Return(fmt.Errorf("db error"))
 
-	got, err := svc.UpdateAvailability(user.Id, dto)
+	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
 	assert.Error(t, err)
 	assert.Nil(t, got)
