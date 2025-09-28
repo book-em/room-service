@@ -3,6 +3,8 @@ package main
 import (
 	"bookem-room-service/client/userclient"
 	internal "bookem-room-service/internal"
+	"bookem-room-service/util"
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -11,6 +13,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -56,12 +59,21 @@ func connectToDb() {
 }
 
 func main() {
+	ctx := context.Background()
+	shutdown := util.TEL.Init(
+		ctx,
+		os.Getenv("SERVICE_NAME"),
+		os.Getenv("DEPLOYMENT_ENV"),
+	)
+	defer shutdown(ctx)
+
 	connectToDb()
 	defer rawDB.Close()
 	syncDatabase()
 
 	server = gin.Default()
 
+	server.Use(otelgin.Middleware(os.Getenv("SERVICE_NAME")))
 	server.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "http://localhost", "http://bookem.local"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
