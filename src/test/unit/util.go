@@ -3,6 +3,7 @@ package test
 import (
 	"bookem-room-service/client/userclient"
 	"bookem-room-service/internal"
+	"context"
 	"time"
 
 	mock "github.com/stretchr/testify/mock"
@@ -127,8 +128,8 @@ type MockUserClient struct {
 	mock.Mock
 }
 
-func (r *MockUserClient) FindById(id uint) (*userclient.UserDTO, error) {
-	args := r.Called(id)
+func (r *MockUserClient) FindById(context context.Context, id uint) (*userclient.UserDTO, error) {
+	args := r.Called(context, id)
 	user, _ := args.Get(0).(*userclient.UserDTO)
 	return user, args.Error(1)
 }
