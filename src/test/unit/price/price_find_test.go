@@ -11,7 +11,7 @@ import (
 )
 
 func Test_FindPriceListById_Success(t *testing.T) {
-	svc, _, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, _, _, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	list := DefaultPriceList
 
@@ -26,7 +26,7 @@ func Test_FindPriceListById_Success(t *testing.T) {
 }
 
 func Test_FindPriceListById_NotFound(t *testing.T) {
-	svc, _, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, _, _, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	mockPriceRepo.On("FindListById", uint(999)).Return(nil, fmt.Errorf("not found"))
 
@@ -39,7 +39,7 @@ func Test_FindPriceListById_NotFound(t *testing.T) {
 }
 
 func Test_FindPriceListsByRoomId_Success(t *testing.T) {
-	svc, mockRepo, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, mockRepo, _, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	room.ID = 1
@@ -65,7 +65,7 @@ func Test_FindPriceListsByRoomId_Success(t *testing.T) {
 }
 
 func Test_FindPriceListsByRoomId_Success_NoLists(t *testing.T) {
-	svc, mockRepo, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, mockRepo, _, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	room.ID = 999
@@ -82,7 +82,7 @@ func Test_FindPriceListsByRoomId_Success_NoLists(t *testing.T) {
 }
 
 func Test_FindPriceListsByRoomId_NotFound(t *testing.T) {
-	svc, mockRepo, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, mockRepo, _, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	room.ID = 1
@@ -99,7 +99,7 @@ func Test_FindPriceListsByRoomId_NotFound(t *testing.T) {
 }
 
 func Test_FindPriceListsByRoomId_RoomNotFound(t *testing.T) {
-	svc, mockRepo, _, _, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, _, _ := CreateTestRoomService()
 
 	mockRepo.On("FindById", uint(999)).Return(nil, fmt.Errorf("not found"))
 
@@ -111,7 +111,7 @@ func Test_FindPriceListsByRoomId_RoomNotFound(t *testing.T) {
 }
 
 func Test_FindCurrentPriceListOfRoom_Success(t *testing.T) {
-	svc, _, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, _, _, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	list := DefaultPriceList
 
@@ -125,7 +125,7 @@ func Test_FindCurrentPriceListOfRoom_Success(t *testing.T) {
 }
 
 func Test_FindCurrentPriceListOfRoom_NotFound(t *testing.T) {
-	svc, _, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, _, _, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	mockPriceRepo.On("FindCurrentListOfRoom", uint(999)).Return(nil, fmt.Errorf("not found"))
 

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bookem-room-service/client/reservationclient"
 	"bookem-room-service/client/userclient"
 	"bookem-room-service/internal"
 	"context"
@@ -15,14 +16,16 @@ func CreateTestRoomService() (
 	*MockRoomAvailabilityRepo,
 	*MockRoomPriceRepo,
 	*MockUserClient,
+	*MockReservationClient,
 ) {
 	mockRepo := new(MockRoomRepo)
 	mockRoomAvailRepo := new(MockRoomAvailabilityRepo)
 	mockRoomPriceRepo := new(MockRoomPriceRepo)
 	mockUserClient := new(MockUserClient)
+	mockReservationClient := new(MockReservationClient)
 
-	svc := internal.NewService(mockRepo, mockRoomAvailRepo, mockRoomPriceRepo, mockUserClient)
-	return svc, mockRepo, mockRoomAvailRepo, mockRoomPriceRepo, mockUserClient
+	svc := internal.NewService(mockRepo, mockRoomAvailRepo, mockRoomPriceRepo, mockUserClient, mockReservationClient)
+	return svc, mockRepo, mockRoomAvailRepo, mockRoomPriceRepo, mockUserClient, mockReservationClient
 }
 
 // ----------------------------------------------- Mock Room repo
@@ -132,6 +135,18 @@ func (r *MockUserClient) FindById(context context.Context, id uint) (*userclient
 	args := r.Called(context, id)
 	user, _ := args.Get(0).(*userclient.UserDTO)
 	return user, args.Error(1)
+}
+
+// ----------------------------------------------- Mock reservation client
+
+type MockReservationClient struct {
+	mock.Mock
+}
+
+func (r *MockReservationClient) GetActiveHostReservations(jwt string, roomIDs []uint) ([]reservationclient.ReservationDTO, error) {
+	args := r.Called(jwt, roomIDs)
+	reservations, _ := args.Get(0).([]reservationclient.ReservationDTO)
+	return reservations, args.Error(1)
 }
 
 // ----------------------------------------------- Mock data

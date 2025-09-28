@@ -11,7 +11,7 @@ import (
 )
 
 func Test_QueryForReservation_Success(t *testing.T) {
-	svc, mockRoomRepo, mockAvailRepo, mockRoomPriceRepo, mockUserClient := CreateTestRoomService()
+	svc, mockRoomRepo, mockAvailRepo, mockRoomPriceRepo, mockUserClient, _ := CreateTestRoomService()
 
 	dto := internal.RoomReservationQueryDTO{
 		RoomID:     DefaultRoom.ID,
@@ -39,7 +39,7 @@ func Test_QueryForReservation_Success(t *testing.T) {
 }
 
 func Test_QueryForReservation_RoomUnavailable(t *testing.T) {
-	svc, mockRoomRepo, mockAvailRepo, _, mockUserClient := CreateTestRoomService()
+	svc, mockRoomRepo, mockAvailRepo, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := internal.RoomReservationQueryDTO{
 		RoomID:     DefaultRoom.ID,
@@ -65,7 +65,7 @@ func Test_QueryForReservation_RoomUnavailable(t *testing.T) {
 }
 
 func Test_QueryForReservation_PriceCalculationFails(t *testing.T) {
-	svc, mockRoomRepo, mockAvailRepo, mockRoomPriceRepo, mockUserClient := CreateTestRoomService()
+	svc, mockRoomRepo, mockAvailRepo, mockRoomPriceRepo, mockUserClient, _ := CreateTestRoomService()
 
 	dto := internal.RoomReservationQueryDTO{
 		RoomID:     DefaultRoom.ID,
@@ -91,7 +91,7 @@ func Test_QueryForReservation_PriceCalculationFails(t *testing.T) {
 }
 
 func Test_QueryForReservation_UnauthorizedUser(t *testing.T) {
-	svc, _, _, _, mockUserClient := CreateTestRoomService()
+	svc, _, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := internal.RoomReservationQueryDTO{
 		RoomID:     DefaultRoom.ID,
@@ -112,7 +112,7 @@ func Test_QueryForReservation_UnauthorizedUser(t *testing.T) {
 }
 
 func Test_QueryForReservation_UserNotFound(t *testing.T) {
-	svc, _, _, _, mockUserClient := CreateTestRoomService()
+	svc, _, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := internal.RoomReservationQueryDTO{
 		RoomID:     DefaultRoom.ID,
@@ -132,7 +132,7 @@ func Test_QueryForReservation_UserNotFound(t *testing.T) {
 }
 
 func Test_QueryForReservation_RoomNotFound(t *testing.T) {
-	svc, mockRoomRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRoomRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := internal.RoomReservationQueryDTO{
 		RoomID:     999,

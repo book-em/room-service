@@ -12,7 +12,7 @@ import (
 )
 
 func Test_ClearYear_Success(t *testing.T) {
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 
 	date1 := time.Now()
 	date2 := time.Now().Add(24 * time.Hour)
@@ -28,7 +28,7 @@ func Test_ClearYear_Success(t *testing.T) {
 }
 
 func Test_CalculatePriceForOneDay_BasePrice_Success(t *testing.T) {
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	day = util.ClearYear(day)
 	basePrice := uint(1000)
@@ -57,7 +57,7 @@ func Test_CalculatePriceForOneDay_BasePrice_Success(t *testing.T) {
 }
 
 func Test_CalculatePriceForOneDay_DefinedPriceByRule_Success(t *testing.T) {
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 13, 0, 0, 0, 0, time.UTC)
 	day = util.ClearYear(day)
 	basePrice := uint(1000)
@@ -85,7 +85,7 @@ func Test_CalculatePriceForOneDay_DefinedPriceByRule_Success(t *testing.T) {
 }
 
 func Test_CalculatePrice_UndefinedRules_Fail(t *testing.T) {
-	svc, _, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, _, _, mockPriceRepo, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 25, 0, 0, 0, 0, time.UTC)
 	guestsNumber := uint(2)
@@ -102,7 +102,7 @@ func Test_CalculatePrice_UndefinedRules_Fail(t *testing.T) {
 }
 
 func Test_CalculatePrice_PerGuest_Success(t *testing.T) {
-	svc, _, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, _, _, mockPriceRepo, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 24, 0, 0, 0, 0, time.UTC)
 	guestsNumber := uint(2)
@@ -142,7 +142,7 @@ func Test_CalculatePrice_PerGuest_Success(t *testing.T) {
 }
 
 func Test_CalculatePrice_FlatPrice_Success(t *testing.T) {
-	svc, _, _, mockPriceRepo, _ := CreateTestRoomService()
+	svc, _, _, mockPriceRepo, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 24, 0, 0, 0, 0, time.UTC)
 	guestsNumber := uint(2)
@@ -183,7 +183,7 @@ func Test_CalculatePrice_FlatPrice_Success(t *testing.T) {
 
 func Test_IsRoomAvailableForOneDay_OverlappingAvailable_Success(t *testing.T) {
 	// One interval overlaps with another, choose the least one
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
 	day = util.ClearYear(day)
 
@@ -210,7 +210,7 @@ func Test_IsRoomAvailableForOneDay_OverlappingAvailable_Success(t *testing.T) {
 
 func Test_IsRoomAvailableForOneDay_OverlappingUnavailable_Success(t *testing.T) {
 	// One interval overlaps with another, choose the least one
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
 	day = util.ClearYear(day)
 
@@ -237,7 +237,7 @@ func Test_IsRoomAvailableForOneDay_OverlappingUnavailable_Success(t *testing.T) 
 
 func Test_IsRoomAvailableForOneDay_NoOverlappingUnavailable_Success(t *testing.T) {
 	// For undefined day, the room is unavailable by default
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 	day := time.Date(2025, 8, 1, 0, 0, 0, 0, time.UTC)
 	day = util.ClearYear(day)
 
@@ -263,7 +263,7 @@ func Test_IsRoomAvailableForOneDay_NoOverlappingUnavailable_Success(t *testing.T
 }
 
 func Test_IsRoomAvailable_UndefinedRulesUnavailable(t *testing.T) {
-	svc, _, mockRepo, _, _ := CreateTestRoomService()
+	svc, _, mockRepo, _, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 20, 0, 0, 0, 0, time.UTC)
 	roomId := uint(1)
@@ -278,7 +278,7 @@ func Test_IsRoomAvailable_UndefinedRulesUnavailable(t *testing.T) {
 }
 
 func Test_IsRoomAvailable_OverlappingAvailable(t *testing.T) {
-	svc, _, mockRepo, _, _ := CreateTestRoomService()
+	svc, _, mockRepo, _, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 15, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 18, 0, 0, 0, 0, time.UTC)
 	roomId := uint(1)
@@ -312,7 +312,7 @@ func Test_IsRoomAvailable_OverlappingAvailable(t *testing.T) {
 }
 
 func Test_IsRoomAvailable_OverlappingAvailableAdvanced(t *testing.T) {
-	svc, _, mockRepo, _, _ := CreateTestRoomService()
+	svc, _, mockRepo, _, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 20, 0, 0, 0, 0, time.UTC)
 	roomId := uint(1)
@@ -352,7 +352,7 @@ func Test_IsRoomAvailable_OverlappingAvailableAdvanced(t *testing.T) {
 }
 
 func Test_IsRoomAvailable_OverlappingUnavailable(t *testing.T) {
-	svc, _, mockRepo, _, _ := CreateTestRoomService()
+	svc, _, mockRepo, _, _, _ := CreateTestRoomService()
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
 	dateTo := time.Date(2025, 8, 18, 0, 0, 0, 0, time.UTC)
 	roomId := uint(1)
@@ -386,7 +386,7 @@ func Test_IsRoomAvailable_OverlappingUnavailable(t *testing.T) {
 }
 
 func Test_CalculateUnitPricePerGuest(t *testing.T) {
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 	perGuest := true
 	guestsNumber := uint(2)
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
@@ -400,7 +400,7 @@ func Test_CalculateUnitPricePerGuest(t *testing.T) {
 }
 
 func Test_CalculateUnitPriceFlat(t *testing.T) {
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 	perGuest := false
 	guestsNumber := uint(99)
 	dateFrom := time.Date(2025, 8, 10, 0, 0, 0, 0, time.UTC)
@@ -414,7 +414,7 @@ func Test_CalculateUnitPriceFlat(t *testing.T) {
 }
 
 func Test_PreparePaginatedResult_Success(t *testing.T) {
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 
 	pageNumber := uint(1)
 	pageSize := uint(10)
@@ -434,7 +434,7 @@ func Test_PreparePaginatedResult_Success(t *testing.T) {
 
 func Test_PreparePaginatedResult_OutOfMargin(t *testing.T) {
 	// Show last page result if page number exceeds total
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 
 	pageNumber := uint(99999)
 	pageSize := uint(10)
@@ -455,7 +455,7 @@ func Test_PreparePaginatedResult_OutOfMargin(t *testing.T) {
 
 func Test_PreparePaginatedResult_LastPage(t *testing.T) {
 	// Case when the last page is selected
-	svc, _, _, _, _ := CreateTestRoomService()
+	svc, _, _, _, _, _ := CreateTestRoomService()
 
 	pageNumber := uint(2)
 	pageSize := uint(10)
@@ -477,7 +477,7 @@ func Test_PreparePaginatedResult_LastPage(t *testing.T) {
 // ---------------------------------------------------- OLD
 
 func Test_FindAvailableRooms_InvalidDate(t *testing.T) {
-	svc, mockRepo, _, _, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, _, _ := CreateTestRoomService()
 
 	d := *DefaultRoomsQueryDTO
 	d.DateFrom = d.DateTo.Add(24 * time.Hour)
@@ -492,7 +492,7 @@ func Test_FindAvailableRooms_InvalidDate(t *testing.T) {
 }
 
 func Test_FindAvailableRooms_DbError(t *testing.T) {
-	svc, mockRepo, _, _, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, _, _ := CreateTestRoomService()
 
 	d := *DefaultRoomsQueryDTO
 
@@ -508,7 +508,7 @@ func Test_FindAvailableRooms_DbError(t *testing.T) {
 }
 
 func Test_FindAvailableRooms_Success(t *testing.T) {
-	svc, mockRepo, mockAvailRepo, mockPriceRepo, _ := CreateTestRoomService()
+	svc, mockRepo, mockAvailRepo, mockPriceRepo, _, _ := CreateTestRoomService()
 
 	rooms := []internal.Room{}
 	room1 := internal.Room{

@@ -13,7 +13,7 @@ import (
 )
 
 func Test_UpdateAvailability_Success(t *testing.T) {
-	svc, mockRepo, mockAvailRepo, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, mockAvailRepo, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultCreateAvailabilityListDTO
 	user := DefaultUser_Host
@@ -34,7 +34,7 @@ func Test_UpdateAvailability_Success(t *testing.T) {
 }
 
 func Test_UpdateAvailability_UserNotFound(t *testing.T) {
-	svc, _, _, _, mockUserClient := CreateTestRoomService()
+	svc, _, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultCreateAvailabilityListDTO
 	hostID := uint(1234)
@@ -49,7 +49,7 @@ func Test_UpdateAvailability_UserNotFound(t *testing.T) {
 }
 
 func Test_UpdateAvailability_UserNotHost(t *testing.T) {
-	svc, _, _, _, mockUserClient := CreateTestRoomService()
+	svc, _, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultCreateAvailabilityListDTO
 	user := DefaultUser_Guest
@@ -64,7 +64,7 @@ func Test_UpdateAvailability_UserNotHost(t *testing.T) {
 }
 
 func Test_UpdateAvailability_RoomNotFound(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultCreateAvailabilityListDTO
 	user := DefaultUser_Host
@@ -81,7 +81,7 @@ func Test_UpdateAvailability_RoomNotFound(t *testing.T) {
 }
 
 func Test_UpdateAvailability_HostNotOwnRoom(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultCreateAvailabilityListDTO
 	user := DefaultUser_Host
@@ -100,7 +100,7 @@ func Test_UpdateAvailability_HostNotOwnRoom(t *testing.T) {
 }
 
 func Test_UpdateAvailability_BadDateRange(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	// We're creating a new one here because this:
 	//
@@ -133,7 +133,7 @@ func Test_UpdateAvailability_BadDateRange(t *testing.T) {
 }
 
 func Test_UpdateAvailability_DuplicateDateRange(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := internal.CreateRoomAvailabilityListDTO{
 		RoomID: DefaultRoom.ID,
@@ -156,7 +156,7 @@ func Test_UpdateAvailability_DuplicateDateRange(t *testing.T) {
 }
 
 func Test_UpdateAvailability_DBError(t *testing.T) {
-	svc, mockRepo, mockAvailRepo, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, mockAvailRepo, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultCreateAvailabilityListDTO
 	user := DefaultUser_Host

@@ -11,7 +11,7 @@ import (
 )
 
 func Test_Create_Success(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	dto := DefaultRoomCreateDTO
@@ -36,7 +36,7 @@ func Test_Create_Success(t *testing.T) {
 }
 
 func Test_Create_InsertFailed(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultRoomCreateDTO
 
@@ -56,7 +56,7 @@ func Test_Create_InsertFailed(t *testing.T) {
 }
 
 func Test_Create_ImageSaveFailed(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultRoomCreateDTO
 
@@ -81,7 +81,7 @@ func Test_Create_ImageSaveFailed(t *testing.T) {
 }
 
 func Test_Create_UpdateFailed(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	dto := DefaultRoomCreateDTO
@@ -107,7 +107,7 @@ func Test_Create_UpdateFailed(t *testing.T) {
 }
 
 func Test_Create_HostNotFound(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultRoomCreateDTO
 
@@ -125,7 +125,7 @@ func Test_Create_HostNotFound(t *testing.T) {
 }
 
 func Test_Create_HostHasBadRole(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
 
 	dto := DefaultRoomCreateDTO
 

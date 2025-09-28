@@ -11,7 +11,7 @@ import (
 )
 
 func Test_FindAvailabilityListById_Success(t *testing.T) {
-	svc, _, mockAvailRepo, _, _ := CreateTestRoomService()
+	svc, _, mockAvailRepo, _, _, _ := CreateTestRoomService()
 
 	li := DefaultAvailabilityList
 
@@ -26,7 +26,7 @@ func Test_FindAvailabilityListById_Success(t *testing.T) {
 }
 
 func Test_FindAvailabilityListById_NotFound(t *testing.T) {
-	svc, _, mockAvailRepo, _, _ := CreateTestRoomService()
+	svc, _, mockAvailRepo, _, _, _ := CreateTestRoomService()
 
 	li := DefaultAvailabilityList
 
@@ -41,7 +41,7 @@ func Test_FindAvailabilityListById_NotFound(t *testing.T) {
 }
 
 func Test_FindAvailabilityListsByRoomId_Success(t *testing.T) {
-	svc, mockRepo, mockAvailRepo, _, _ := CreateTestRoomService()
+	svc, mockRepo, mockAvailRepo, _, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	room.ID = uint(1)
@@ -67,7 +67,7 @@ func Test_FindAvailabilityListsByRoomId_Success(t *testing.T) {
 }
 
 func Test_FindAvailabilityListsByRoomId_Success_NoLists(t *testing.T) {
-	svc, mockRepo, mockAvailRepo, _, _ := CreateTestRoomService()
+	svc, mockRepo, mockAvailRepo, _, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	room.ID = uint(999)
@@ -87,7 +87,7 @@ func Test_FindAvailabilityListsByRoomId_Success_NoLists(t *testing.T) {
 }
 
 func Test_FindAvailabilityListsByRoomId_NotFound(t *testing.T) {
-	svc, mockRepo, mockAvailRepo, _, _ := CreateTestRoomService()
+	svc, mockRepo, mockAvailRepo, _, _, _ := CreateTestRoomService()
 
 	room := DefaultRoom
 	room.ID = uint(1)
@@ -108,7 +108,7 @@ func Test_FindAvailabilityListsByRoomId_NotFound(t *testing.T) {
 }
 
 func Test_FindAvailabilityListsByRoomId_RoomNotFound(t *testing.T) {
-	svc, mockRepo, _, _, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, _, _ := CreateTestRoomService()
 
 	li := DefaultAvailabilityList
 
@@ -122,7 +122,7 @@ func Test_FindAvailabilityListsByRoomId_RoomNotFound(t *testing.T) {
 }
 
 func Test_FindCurrentAvailabilityListOfRoom_Success(t *testing.T) {
-	svc, _, mockAvailRepo, _, _ := CreateTestRoomService()
+	svc, _, mockAvailRepo, _, _, _ := CreateTestRoomService()
 
 	li := DefaultAvailabilityList
 
@@ -137,7 +137,7 @@ func Test_FindCurrentAvailabilityListOfRoom_Success(t *testing.T) {
 }
 
 func Test_FindCurrentAvailabilityListOfRoom_NotFound(t *testing.T) {
-	svc, _, mockAvailRepo, _, _ := CreateTestRoomService()
+	svc, _, mockAvailRepo, _, _, _ := CreateTestRoomService()
 
 	li := DefaultAvailabilityList
 
