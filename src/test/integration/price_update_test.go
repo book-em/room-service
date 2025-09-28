@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"bookem-room-service/client/userclient"
 	"bookem-room-service/internal"
 	test "bookem-room-service/test/unit"
 	"bookem-room-service/util"
@@ -14,7 +13,7 @@ import (
 
 func TestIntegration_UpdatePriceList_Success(t *testing.T) {
 	username := "host_pu_01"
-	registerUser(username, "1234", userclient.Host)
+	registerUser(username, "1234", util.Host)
 	jwt := loginUser2(username, "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 

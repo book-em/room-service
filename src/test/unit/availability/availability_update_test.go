@@ -20,7 +20,7 @@ func Test_UpdateAvailability_Success(t *testing.T) {
 	room := DefaultRoom
 	room.HostID = user.Id
 
-	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockUserClient.On("FindById", context.Background(), user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 	mockAvailRepo.On("CreateList", mock.Anything).Return(nil)
 
@@ -39,7 +39,7 @@ func Test_UpdateAvailability_UserNotFound(t *testing.T) {
 	dto := DefaultCreateAvailabilityListDTO
 	hostID := uint(1234)
 
-	mockUserClient.On("FindById", hostID).Return(nil, fmt.Errorf("not found"))
+	mockUserClient.On("FindById", context.Background(), hostID).Return(nil, fmt.Errorf("not found"))
 
 	got, err := svc.UpdateAvailability(context.Background(), hostID, dto)
 
@@ -54,7 +54,7 @@ func Test_UpdateAvailability_UserNotHost(t *testing.T) {
 	dto := DefaultCreateAvailabilityListDTO
 	user := DefaultUser_Guest
 
-	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockUserClient.On("FindById", context.Background(), user.Id).Return(user, nil)
 
 	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
 
@@ -69,7 +69,7 @@ func Test_UpdateAvailability_RoomNotFound(t *testing.T) {
 	dto := DefaultCreateAvailabilityListDTO
 	user := DefaultUser_Host
 
-	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockUserClient.On("FindById", context.Background(), user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(nil, fmt.Errorf("not found"))
 
 	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
@@ -88,7 +88,7 @@ func Test_UpdateAvailability_HostNotOwnRoom(t *testing.T) {
 	room := DefaultRoom
 	room.HostID = user.Id + 1 // mismatch
 
-	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockUserClient.On("FindById", context.Background(), user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
 	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
@@ -121,7 +121,7 @@ func Test_UpdateAvailability_BadDateRange(t *testing.T) {
 	room := DefaultRoom
 	room.HostID = user.Id
 
-	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockUserClient.On("FindById", context.Background(), user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
 	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
@@ -144,7 +144,7 @@ func Test_UpdateAvailability_DuplicateDateRange(t *testing.T) {
 	room := DefaultRoom
 	room.HostID = user.Id
 
-	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockUserClient.On("FindById", context.Background(), user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 
 	got, err := svc.UpdateAvailability(context.Background(), user.Id, dto)
@@ -163,7 +163,7 @@ func Test_UpdateAvailability_DBError(t *testing.T) {
 	room := DefaultRoom
 	room.HostID = user.Id
 
-	mockUserClient.On("FindById", user.Id).Return(user, nil)
+	mockUserClient.On("FindById", context.Background(), user.Id).Return(user, nil)
 	mockRepo.On("FindById", dto.RoomID).Return(room, nil)
 	mockAvailRepo.On("CreateList", mock.Anything).Return(fmt.Errorf("db error"))
 

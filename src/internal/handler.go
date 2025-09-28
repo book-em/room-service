@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bookem-room-service/client/userclient"
 	"bookem-room-service/util"
 	"net/http"
 	"strconv"
@@ -47,7 +46,7 @@ func (h *Handler) createRoom(ctx *gin.Context) {
 		return
 	}
 
-	if jwt.Role != userclient.Host {
+	if jwt.Role != util.Host {
 		util.TEL.Event("user is not host", nil)
 		AbortError(ctx, ErrUnauthorized)
 		return
@@ -199,7 +198,7 @@ func (h *Handler) updateAvailability(ctx *gin.Context) {
 		return
 	}
 
-	if jwt.Role != userclient.Host {
+	if jwt.Role != util.Host {
 		util.TEL.Event("user is not host", nil)
 		AbortError(ctx, ErrUnauthorized)
 		return
@@ -233,8 +232,8 @@ func (h *Handler) queryForReservation(ctx *gin.Context) {
 		return
 	}
 
-	if jwt.Role != userclient.Guest {
-		util.TEL.Event("user is not guest", nil)
+	if jwt.Role != util.Guest {
+		util.TEL.Eventf("user is not guest (role = %s)", nil, jwt.Role)
 		AbortError(ctx, ErrUnauthorized)
 		return
 	}
@@ -336,7 +335,7 @@ func (h *Handler) updatePriceList(ctx *gin.Context) {
 		return
 	}
 
-	if jwt.Role != userclient.Host {
+	if jwt.Role != util.Host {
 		util.TEL.Event("user is not host", nil)
 		AbortError(ctx, ErrUnauthorized)
 		return
