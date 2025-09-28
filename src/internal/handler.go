@@ -29,6 +29,8 @@ func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.POST("/price", r.handler.updatePriceList)
 
 	rg.POST("/reservation/query", r.handler.queryForReservation)
+
+	rg.GET("/reservations/host/active", r.handler.getActiveHostReservations)
 }
 
 type Handler struct{ service Service }
@@ -379,4 +381,33 @@ func (h *Handler) findAvailableRooms(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, NewRoomsResultDTO(rooms, *resultInfo))
+}
+
+func (h *Handler) getActiveHostReservations(ctx *gin.Context) {
+	log.Printf("getActiveHostReservations called")
+
+	jwt, err := util.GetJwt(ctx)
+	if err != nil {
+		AbortError(ctx, ErrUnauthenticated)
+		return
+	}
+
+	if jwt.Role != userclient.Host {
+		AbortError(ctx, ErrUnauthorized)
+		return
+	}
+
+	jwtString, err := util.GetJwtString(ctx)
+	if err != nil {
+		AbortError(ctx, ErrUnauthenticated)
+		return
+	}
+
+	reservations, err := h.service.GetActiveHostReservations(jwt.ID, jwtString)
+	if err != nil {
+		AbortError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, reservations)
 }
