@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 type UserClient interface {
@@ -26,8 +29,14 @@ func NewUserClient() UserClient {
 func (c *userClient) FindById(context context.Context, id uint) (*UserDTO, error) {
 	util.TEL.Eventf("find user %d", nil, id)
 
-	resp, err := http.Get(fmt.Sprintf("%s/%d", c.baseURL, id))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/%d", c.baseURL, id), nil)
+	if err != nil {
+		util.TEL.Eventf("could not create request", err)
+		return nil, err
+	}
+	otel.GetTextMapPropagator().Inject(context, propagation.HeaderCarrier(req.Header))
 
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		util.TEL.Eventf("could not send request", err)
 		return nil, err
@@ -43,6 +52,7 @@ func (c *userClient) FindById(context context.Context, id uint) (*UserDTO, error
 		util.TEL.Eventf("could not parse bytes from response", err)
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	var obj UserDTO
 	if err := json.Unmarshal(bodyBytes, &obj); err != nil {
