@@ -18,7 +18,7 @@ func Test_Create_Success(t *testing.T) {
 
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(nil)
 	mockRepo.On("Update", mock.AnythingOfType("*internal.Room")).Return(nil)
-	mockUserClient.On("FindById", mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
+	mockUserClient.On("FindById", context.Background(), mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
 	util.SaveImageB64 = func(base64Image string, filename string) (string, string, error) {
 		return "foo/" + room.Photos[0], room.Photos[0], nil
 	}
@@ -41,7 +41,7 @@ func Test_Create_InsertFailed(t *testing.T) {
 	dto := DefaultRoomCreateDTO
 
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(fmt.Errorf("db error"))
-	mockUserClient.On("FindById", mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
+	mockUserClient.On("FindById", context.Background(), mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
 
 	roomGot, err := svc.Create(context.Background(), DefaultUser_Host.Id, dto)
 
@@ -62,7 +62,7 @@ func Test_Create_ImageSaveFailed(t *testing.T) {
 
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(nil)
 	mockRepo.On("Delete", mock.AnythingOfType("*internal.Room")).Return(nil)
-	mockUserClient.On("FindById", mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
+	mockUserClient.On("FindById", context.Background(), mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
 
 	util.SaveImageB64 = func(base64Image string, filename string) (string, string, error) {
 		return "", "", fmt.Errorf("some error")
@@ -89,7 +89,7 @@ func Test_Create_UpdateFailed(t *testing.T) {
 	mockRepo.On("Create", mock.AnythingOfType("*internal.Room")).Return(nil)
 	mockRepo.On("Update", mock.AnythingOfType("*internal.Room")).Return(fmt.Errorf("error"))
 	mockRepo.On("Delete", mock.AnythingOfType("*internal.Room")).Return(nil)
-	mockUserClient.On("FindById", mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
+	mockUserClient.On("FindById", context.Background(), mock.AnythingOfType("uint")).Return(DefaultUser_Host, nil)
 	util.SaveImageB64 = func(base64Image string, filename string) (string, string, error) {
 		return "foo/" + room.Photos[0], room.Photos[0], nil
 	}
@@ -111,7 +111,7 @@ func Test_Create_HostNotFound(t *testing.T) {
 
 	dto := DefaultRoomCreateDTO
 
-	mockUserClient.On("FindById", mock.AnythingOfType("uint")).Return(nil, fmt.Errorf("user not found"))
+	mockUserClient.On("FindById", context.Background(), mock.AnythingOfType("uint")).Return(nil, fmt.Errorf("user not found"))
 	roomGot, err := svc.Create(context.Background(), DefaultUser_Host.Id, dto)
 
 	assert.Error(t, err)
@@ -129,7 +129,7 @@ func Test_Create_HostHasBadRole(t *testing.T) {
 
 	dto := DefaultRoomCreateDTO
 
-	mockUserClient.On("FindById", mock.AnythingOfType("uint")).Return(DefaultUser_Guest, nil)
+	mockUserClient.On("FindById", context.Background(), mock.AnythingOfType("uint")).Return(DefaultUser_Guest, nil)
 	roomGot, err := svc.Create(context.Background(), DefaultUser_Guest.Id, dto)
 
 	assert.Error(t, err)
