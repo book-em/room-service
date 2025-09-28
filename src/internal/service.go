@@ -77,7 +77,7 @@ func (s *service) Create(context context.Context, callerID uint, dto CreateRoomD
 	// Check if user exists.
 
 	util.TEL.Eventf("check if user %d exists", nil, callerID)
-	caller, err := s.userClient.FindById(callerID)
+	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
 		util.TEL.Eventf("user %d does not exist", err, callerID)
 		return nil, err
@@ -86,7 +86,7 @@ func (s *service) Create(context context.Context, callerID uint, dto CreateRoomD
 	// Check if user is host.
 
 	util.TEL.Eventf("check if user %d is a host", nil)
-	if caller.Role != string(userclient.Host) {
+	if caller.Role != string(util.Host) {
 		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
 		return nil, ErrUnauthorized
 	}
@@ -177,7 +177,7 @@ func (s *service) FindByHost(context context.Context, hostId uint) ([]Room, erro
 	// Check if user exists.
 
 	util.TEL.Eventf("check if user %d exists", nil, hostId)
-	host, err := s.userClient.FindById(hostId)
+	host, err := s.userClient.FindById(util.TEL.Ctx(), hostId)
 	if err != nil {
 		util.TEL.Eventf("user %d does not exist", err, hostId)
 		return nil, ErrNotFound("host", hostId)
@@ -186,7 +186,7 @@ func (s *service) FindByHost(context context.Context, hostId uint) ([]Room, erro
 	// Check if user is host.
 
 	util.TEL.Eventf("check if user %d is a host", nil)
-	if host.Role != string(userclient.Host) {
+	if host.Role != string(util.Host) {
 		util.TEL.Eventf("user has a bad role (%s)", nil, host.Role)
 		return nil, ErrUnauthorized
 	}
@@ -267,14 +267,14 @@ func (s *service) UpdateAvailability(context context.Context, callerID uint, dto
 	defer util.TEL.Pop()
 
 	util.TEL.Eventf("check if user %d exists", nil, callerID)
-	caller, err := s.userClient.FindById(callerID)
+	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
 		util.TEL.Eventf("user %d does not exist", err, callerID)
 		return nil, err
 	}
 
 	util.TEL.Eventf("check if user %d is a host", nil)
-	if caller.Role != string(userclient.Host) {
+	if caller.Role != string(util.Host) {
 		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
 		return nil, ErrUnauthorized
 	}
@@ -405,14 +405,14 @@ func (s *service) UpdatePriceList(context context.Context, callerID uint, dto Cr
 	defer util.TEL.Pop()
 
 	util.TEL.Eventf("check if user %d exists", nil, callerID)
-	caller, err := s.userClient.FindById(callerID)
+	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
 		util.TEL.Eventf("user %d does not exist", err, callerID)
 		return nil, err
 	}
 
 	util.TEL.Eventf("check if user %d is a host", nil)
-	if caller.Role != string(userclient.Host) {
+	if caller.Role != string(util.Host) {
 		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
 		return nil, ErrUnauthorized
 	}
@@ -684,14 +684,14 @@ func (s *service) QueryForReservation(context context.Context, callerID uint, dt
 	defer util.TEL.Pop()
 
 	util.TEL.Eventf("check if user %d exists", nil, callerID)
-	caller, err := s.userClient.FindById(callerID)
+	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
 		util.TEL.Eventf("user %d does not exist", err, callerID)
 		return nil, err
 	}
 
 	util.TEL.Eventf("check if user %d is a guest", nil)
-	if caller.Role != string(userclient.Guest) {
+	if caller.Role != string(util.Guest) {
 		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
 		return nil, ErrUnauthorized
 	}

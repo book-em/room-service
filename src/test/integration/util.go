@@ -28,7 +28,7 @@ func genName(length int) string {
 	return string(b)
 }
 
-func registerUser(username_or_email string, password string, role userclient.UserRole) (*http.Response, error) {
+func registerUser(username_or_email string, password string, role util.UserRole) (*http.Response, error) {
 	username := username_or_email
 	email := username + "@gmail.com"
 
@@ -286,7 +286,7 @@ func findPriceListById(id uint) (*http.Response, error) {
 }
 
 func createUserAndRoom(username string) (string, *util.Jwt, internal.RoomDTO) {
-	registerUser(username, "1234", userclient.Host)
+	registerUser(username, "1234", util.Host)
 	jwt := loginUser2(username, "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 
@@ -313,7 +313,7 @@ func createRoomAvailabilityList(jwt string, room internal.RoomDTO) internal.Room
 }
 
 func createUserAndRoomForPrice(username string) (string, *util.Jwt, internal.RoomDTO) {
-	registerUser(username, "1234", userclient.Host)
+	registerUser(username, "1234", util.Host)
 	jwt := loginUser2(username, "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 

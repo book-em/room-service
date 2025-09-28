@@ -1,8 +1,8 @@
 package integration
 
 import (
-	"bookem-room-service/client/userclient"
 	"bookem-room-service/internal"
+	"bookem-room-service/util"
 	"bytes"
 	"encoding/json"
 	"io"
@@ -25,7 +25,7 @@ func TestIntegration_QueryForReservation_Success(t *testing.T) {
 
 	// [Step 3] Register a guest user
 	guestUsername := "guest_query_test"
-	registerUser(guestUsername, "1234", userclient.Guest)
+	registerUser(guestUsername, "1234", util.Guest)
 	guestJwt := loginUser2(guestUsername, "1234")
 
 	// [Step 4] Prepare reservation query DTO

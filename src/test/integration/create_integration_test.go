@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"bookem-room-service/client/userclient"
 	test "bookem-room-service/test/unit"
 	"bookem-room-service/util"
 	"fmt"
@@ -11,7 +10,7 @@ import (
 )
 
 func TestIntegration_Create_Success(t *testing.T) {
-	registerUser("user1", "1234", userclient.Host)
+	registerUser("user1", "1234", util.Host)
 	jwt := loginUser2("user1", "1234")
 	jwtObj, err := util.GetJwtFromString(jwt)
 	if err != nil {

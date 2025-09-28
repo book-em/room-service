@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"bookem-room-service/client/userclient"
 	test "bookem-room-service/test/unit"
 	"bookem-room-service/util"
 	"net/http"
@@ -14,7 +13,7 @@ func TestIntegration_FindById_Success(t *testing.T) {
 	cleanup("room")
 	cleanup("user")
 
-	registerUser("user2", "1234", userclient.Host)
+	registerUser("user2", "1234", util.Host)
 	jwt := loginUser2("user2", "1234")
 	jwtObj, _ := util.GetJwtFromString(jwt)
 
