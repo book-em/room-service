@@ -316,3 +316,16 @@ var DefaulPaginatedResultInfoDTO = &internal.PaginatedResultInfoDTO{
 	TotalPages: 1,
 	TotalHits:  3,
 }
+
+var DefaultReservationDTO = &reservationclient.ReservationDTO{
+	ID:                 1,
+	RoomID:             1,
+	RoomAvailabilityID: 1,
+	RoomPriceID:        1,
+	GuestID:            1,
+	DateFrom:           time.Date(2025, 8, 6, 0, 0, 0, 0, time.UTC),
+	DateTo:             time.Date(2025, 8, 7, 0, 0, 0, 0, time.UTC),
+	GuestCount:         1,
+	Cancelled:          false,
+	Cost:               1,
+}
