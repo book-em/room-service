@@ -69,33 +69,33 @@ func NewService(
 }
 
 func (s *service) Create(context context.Context, callerID uint, dto CreateRoomDTO) (*Room, error) {
-	util.TEL.Eventf("user %d wants to create a room", nil, callerID)
+	util.TEL.Info("user wants to create a room", "caller_id", callerID)
 
 	util.TEL.Push(context, "validate-user")
 	defer util.TEL.Pop()
 
 	// Check if user exists.
 
-	util.TEL.Eventf("check if user %d exists", nil, callerID)
+	util.TEL.Debug("check if user exists", "id", callerID)
 	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
-		util.TEL.Eventf("user %d does not exist", err, callerID)
+		util.TEL.Error("user does not exist", err, "id", callerID)
 		return nil, err
 	}
 
 	// Check if user is host.
 
-	util.TEL.Eventf("check if user %d is a host", nil, callerID)
+	util.TEL.Debug("check if user is a host", "id", callerID)
 	if caller.Role != string(util.Host) {
-		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
+		util.TEL.Error("user has a bad role", nil, "role", caller.Role)
 		return nil, ErrUnauthorized
 	}
 
 	// User must be creating a room for himself.
 
-	util.TEL.Eventf("user must be creating a room for himself", nil)
+	util.TEL.Debug("user must be creating a room for himself")
 	if caller.Id != dto.HostID {
-		util.TEL.Eventf("wrong user %d, caller is %d", nil, dto.HostID, caller.Id)
+		util.TEL.Error("wrong user", nil, "caller_id", caller.Id, "host_id", dto.HostID)
 		return nil, ErrUnauthorized
 	}
 
@@ -130,7 +130,7 @@ func (s *service) Create(context context.Context, callerID uint, dto CreateRoomD
 		imgFname := fmt.Sprintf("room-%d-%d", room.ID, len(photos))
 		_, path, err := util.SaveImageB64(imageBase64, imgFname)
 		if err != nil {
-			util.TEL.Eventf("Could not save image %s", err, imgFname)
+			util.TEL.Error("could not save image", err, "fname", imgFname)
 			s.repo.Delete(room)
 			return nil, err
 		}
@@ -145,8 +145,8 @@ func (s *service) Create(context context.Context, callerID uint, dto CreateRoomD
 	room.Photos = photos
 	err = s.repo.Update(room)
 	if err != nil {
-		util.TEL.Eventf("could not create room", err)
-		util.TEL.Eventf("deleting room...", nil)
+		util.TEL.Error("could not create room (updating with photos failed)", err)
+		util.TEL.Warn("deleting room...")
 		s.repo.Delete(room)
 		return nil, err
 	}
@@ -155,39 +155,39 @@ func (s *service) Create(context context.Context, callerID uint, dto CreateRoomD
 }
 
 func (s *service) FindById(context context.Context, id uint) (*Room, error) {
-	util.TEL.Eventf("find room by ID %d", nil, id)
+	util.TEL.Info("find room", "id", id)
 
 	util.TEL.Push(context, "find-room-in-db")
 	defer util.TEL.Pop()
 
 	room, err := s.repo.FindById(id)
 	if err != nil {
-		util.TEL.Eventf("room %d not found", err, id)
+		util.TEL.Error("room not found", err, "id", id)
 		return nil, ErrNotFound("room", id)
 	}
 	return room, nil
 }
 
 func (s *service) FindByHost(context context.Context, hostId uint) ([]Room, error) {
-	util.TEL.Eventf("find rooms by host %d", nil, hostId)
+	util.TEL.Info("find rooms owned by host", "host_id", hostId)
 
 	util.TEL.Push(context, "validate-user")
 	defer util.TEL.Pop()
 
 	// Check if user exists.
 
-	util.TEL.Eventf("check if user %d exists", nil, hostId)
+	util.TEL.Debug("check if user exists", "id", hostId)
 	host, err := s.userClient.FindById(util.TEL.Ctx(), hostId)
 	if err != nil {
-		util.TEL.Eventf("user %d does not exist", err, hostId)
+		util.TEL.Error("user does not exist", err, "id", hostId)
 		return nil, ErrNotFound("host", hostId)
 	}
 
 	// Check if user is host.
 
-	util.TEL.Eventf("check if user %d is a host", nil, hostId)
+	util.TEL.Debug("check if user is a host", "id", hostId)
 	if host.Role != string(util.Host) {
-		util.TEL.Eventf("user has a bad role (%s)", nil, host.Role)
+		util.TEL.Error("user has a bad role", nil, "role", host.Role)
 		return nil, ErrUnauthorized
 	}
 
@@ -198,34 +198,34 @@ func (s *service) FindByHost(context context.Context, hostId uint) ([]Room, erro
 
 	rooms, err := s.repo.FindByHost(hostId)
 	if err != nil {
-		util.TEL.Eventf("could not find rooms by host", err)
+		util.TEL.Error("could not find rooms by host", err)
 		return nil, ErrNotFound("rooms of host", hostId)
 	}
 	return rooms, nil
 }
 
 func (s *service) FindAvailabilityListById(context context.Context, id uint) (*RoomAvailabilityList, error) {
-	util.TEL.Eventf("find availability list by ID %d", nil, id)
+	util.TEL.Info("find room availability list", "list_id", id)
 
 	util.TEL.Push(context, "find-availability-list-in-db")
 	defer util.TEL.Pop()
 
 	li, err := s.availabiltyRepo.FindListById(id)
 	if err != nil {
-		util.TEL.Eventf("availability list %d not found", err, id)
+		util.TEL.Error("availability list not found", err, "list_id", id)
 		return nil, ErrNotFound("room availability list", id)
 	}
 	return li, err
 }
 
 func (s *service) FindAvailabilityListsByRoomId(context context.Context, roomId uint) ([]RoomAvailabilityList, error) {
-	util.TEL.Eventf("find availability lists by room ID %d", nil, roomId)
+	util.TEL.Info("find availability lists by room", "id", roomId)
 
 	// TODO: Should I push and pop here?
 
 	_, err := s.FindById(util.TEL.Ctx(), roomId)
 	if err != nil {
-		util.TEL.Eventf("room %d not found", err, roomId)
+		util.TEL.Error("room not found", err, "id", roomId)
 		return nil, ErrNotFound("room", roomId)
 	}
 
@@ -234,21 +234,21 @@ func (s *service) FindAvailabilityListsByRoomId(context context.Context, roomId 
 
 	lists, err := s.availabiltyRepo.FindListsByRoomId(roomId)
 	if err != nil {
-		util.TEL.Eventf("availability lists not found", err)
+		util.TEL.Error("availability lists not found", err)
 		return nil, ErrNotFound("room availability lists", roomId)
 	}
 	return lists, err
 }
 
 func (s *service) FindCurrentAvailabilityListOfRoom(context context.Context, roomId uint) (*RoomAvailabilityList, error) {
-	util.TEL.Eventf("find current availability list by room ID %d", nil, roomId)
+	util.TEL.Info("find current availability list of room", "room_id", roomId)
 
 	util.TEL.Push(context, "find-current-availability-list-in-db")
 	defer util.TEL.Pop()
 
 	li, err := s.availabiltyRepo.FindCurrentListOfRoom(roomId)
 	if err != nil {
-		util.TEL.Eventf("availability list not found", err)
+		util.TEL.Error("availability list not found", err)
 		return nil, ErrNotFound("room availability list", roomId)
 	}
 	return li, err
@@ -261,55 +261,55 @@ func (s *service) UpdateAvailability(context context.Context, callerID uint, dto
 	// Our API allows modifying a list by giving it the entire array of items.
 	// So this method does both updating and deleting.
 
-	util.TEL.Eventf("update availability of room %d", nil, dto.RoomID)
+	util.TEL.Info("update availability of room", "room_id", dto.RoomID)
 
 	util.TEL.Push(context, "validate-room-and-user")
 	defer util.TEL.Pop()
 
-	util.TEL.Eventf("check if user %d exists", nil, callerID)
+	util.TEL.Debug("check if user exists", "id", callerID)
 	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
-		util.TEL.Eventf("user %d does not exist", err, callerID)
+		util.TEL.Error("user does not exist", err, "id", callerID)
 		return nil, err
 	}
 
-	util.TEL.Eventf("check if user %d is a host", nil, callerID)
+	util.TEL.Debug("check if user is a host", "id", callerID)
 	if caller.Role != string(util.Host) {
-		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
+		util.TEL.Error("user has a bad role", nil, "role", caller.Role)
 		return nil, ErrUnauthorized
 	}
 
-	util.TEL.Eventf("find room", nil)
+	util.TEL.Debug("find room", "id", dto.RoomID)
 	// TODO: Should I push and pop here?
 	room, err := s.FindById(util.TEL.Ctx(), dto.RoomID)
 	if err != nil {
-		util.TEL.Eventf("room not found %d", err, dto.RoomID)
+		util.TEL.Error("room not found", err, "id", dto.RoomID)
 		return nil, err
 	}
 
-	util.TEL.Eventf("caller must own the room", nil)
+	util.TEL.Debug("caller must own the room")
 	if room.HostID != callerID {
-		util.TEL.Eventf("user is not owner of this room (user=%d, owner=%d", nil, callerID, room.HostID)
+		util.TEL.Error("user is not owner of this room", nil, "user_id", callerID, "owner_id", room.HostID)
 		return nil, ErrUnauthorized
 	}
 
 	util.TEL.Push(context, "validate-availability-list")
 	defer util.TEL.Pop()
 
-	util.TEL.Eventf("create availability list", nil)
+	util.TEL.Debug("create availability list")
 	newList := RoomAvailabilityList{
 		RoomID:        dto.RoomID,
 		EffectiveFrom: time.Now(),
 		Items:         make([]RoomAvailabilityItem, 0, len(dto.Items)),
 	}
 
-	util.TEL.Eventf("validate and create items for the availability list", nil)
+	util.TEL.Debug("validate and create items for the availability list")
 	for i, item := range dto.Items {
 		from := util.ClearYear(item.DateFrom)
 		to := util.ClearYear(item.DateTo)
 
 		if from.After(to) {
-			util.TEL.Eventf("invalid date range: %v > %v", nil, from, to)
+			util.TEL.Error("invalid date range", nil, "from", from, "to", to)
 			return nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", from, to))
 		}
 
@@ -323,7 +323,7 @@ func (s *service) UpdateAvailability(context context.Context, callerID uint, dto
 			to2 := util.ClearYear(item2.DateTo)
 
 			if from == from2 && to == to2 {
-				util.TEL.Eventf("duplicate availability rule at index %d and %d", nil, i, j)
+				util.TEL.Error("duplicate availability rule", nil, "index1", i, "index2", j)
 				return nil, ErrBadRequestCustom(fmt.Sprintf("duplicate availability rule at index %d and %d", i, j))
 			}
 		}
@@ -341,7 +341,7 @@ func (s *service) UpdateAvailability(context context.Context, callerID uint, dto
 
 	err = s.availabiltyRepo.CreateList(&newList)
 	if err != nil {
-		util.TEL.Eventf("could not create availability list in db", err)
+		util.TEL.Error("could not create availability list in db", err)
 		return nil, err
 	}
 
@@ -349,21 +349,21 @@ func (s *service) UpdateAvailability(context context.Context, callerID uint, dto
 }
 
 func (s *service) FindPriceListById(context context.Context, id uint) (*RoomPriceList, error) {
-	util.TEL.Eventf("find room price list by ID %d", nil, id)
+	util.TEL.Info("find room price list", "list_id", id)
 
 	util.TEL.Push(context, "find-availability-list-in-db")
 	defer util.TEL.Pop()
 
 	list, err := s.priceRepo.FindListById(id)
 	if err != nil {
-		util.TEL.Eventf("room price list %d not found", err, id)
+		util.TEL.Error("room price list not found", err, "list_id", id)
 		return nil, ErrNotFound("room price list", id)
 	}
 	return list, nil
 }
 
 func (s *service) FindPriceListsByRoomId(context context.Context, roomId uint) ([]RoomPriceList, error) {
-	util.TEL.Eventf("find room price lists by room ID %d", nil, roomId)
+	util.TEL.Info("find room price lists by room", "room_id", roomId)
 
 	util.TEL.Push(context, "find-availability-lists-in-db")
 	defer util.TEL.Pop()
@@ -372,69 +372,69 @@ func (s *service) FindPriceListsByRoomId(context context.Context, roomId uint) (
 
 	_, err := s.FindById(util.TEL.Ctx(), roomId)
 	if err != nil {
-		util.TEL.Eventf("room %d not found", err, roomId)
+		util.TEL.Error("room not found", err, "id", roomId)
 		return nil, ErrNotFound("room", roomId)
 	}
 
 	lists, err := s.priceRepo.FindListsByRoomId(roomId)
 	if err != nil {
-		util.TEL.Eventf("room price lists of room %d not found", err, roomId)
+		util.TEL.Error("room price lists of room not found", err, "room_id", roomId)
 		return nil, ErrNotFound("room price lists", roomId)
 	}
 	return lists, nil
 }
 
 func (s *service) FindCurrentPriceListOfRoom(context context.Context, roomId uint) (*RoomPriceList, error) {
-	util.TEL.Eventf("find current price lists by room ID %d", nil, roomId)
+	util.TEL.Info("find current price list of room", nil, "room_id", roomId)
 
 	util.TEL.Push(context, "find-current-price-list-in-db")
 	defer util.TEL.Pop()
 
 	list, err := s.priceRepo.FindCurrentListOfRoom(roomId)
 	if err != nil {
-		util.TEL.Eventf("room current price lists of room %d not found", err, roomId)
+		util.TEL.Error("room current price lists of room not found", err, "room_id", roomId)
 		return nil, ErrNotFound("room price list", roomId)
 	}
 	return list, nil
 }
 
 func (s *service) UpdatePriceList(context context.Context, callerID uint, dto CreateRoomPriceListDTO) (*RoomPriceList, error) {
-	util.TEL.Eventf("update price lisit of room %d", nil, dto.RoomID)
+	util.TEL.Info("update price list of room %d", nil, "room_id", dto.RoomID)
 
 	util.TEL.Push(context, "validate-room-and-user")
 	defer util.TEL.Pop()
 
-	util.TEL.Eventf("check if user %d exists", nil, callerID)
+	util.TEL.Debug("check if user exists", "id", callerID)
 	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
-		util.TEL.Eventf("user %d does not exist", err, callerID)
+		util.TEL.Error("user does not exist", err, "id", callerID)
 		return nil, err
 	}
 
-	util.TEL.Eventf("check if user %d is a host", nil, callerID)
+	util.TEL.Debug("check if user is a host", "id", callerID)
 	if caller.Role != string(util.Host) {
-		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
+		util.TEL.Error("user has a bad role", nil, "role", caller.Role)
 		return nil, ErrUnauthorized
 	}
 
-	util.TEL.Eventf("find room", nil)
+	util.TEL.Debug("find room", "id", dto.RoomID)
 	// TODO: Should I push and pop here?
 	room, err := s.FindById(util.TEL.Ctx(), dto.RoomID)
 	if err != nil {
-		util.TEL.Eventf("room not found %d", err, dto.RoomID)
+		util.TEL.Error("room not found", err, "id", dto.RoomID)
 		return nil, err
 	}
 
-	util.TEL.Eventf("caller must own the room", nil)
+	util.TEL.Debug("caller must own the room")
 	if room.HostID != callerID {
-		util.TEL.Eventf("user is not owner of this room (user=%d, owner=%d", nil, callerID, room.HostID)
+		util.TEL.Error("user is not owner of this room", nil, "user_id", callerID, "owner_id", room.HostID)
 		return nil, ErrUnauthorized
 	}
 
 	util.TEL.Push(context, "validate-availability-list")
 	defer util.TEL.Pop()
 
-	util.TEL.Eventf("create price list", nil)
+	util.TEL.Debug("create price list")
 	newList := RoomPriceList{
 		RoomID:        dto.RoomID,
 		EffectiveFrom: time.Now(),
@@ -443,13 +443,13 @@ func (s *service) UpdatePriceList(context context.Context, callerID uint, dto Cr
 		Items:         make([]RoomPriceItem, 0, len(dto.Items)),
 	}
 
-	util.TEL.Eventf("validate and create items for the price list", nil)
+	util.TEL.Debug("validate and create items for the price list")
 	for i, item := range dto.Items {
 		from := util.ClearYear(item.DateFrom)
 		to := util.ClearYear(item.DateTo)
 
 		if from.After(to) {
-			util.TEL.Eventf("invalid date range: %v > %v", nil, from, to)
+			util.TEL.Error("invalid date range", nil, "from", from, "to", to)
 			return nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", from, to))
 		}
 
@@ -462,7 +462,7 @@ func (s *service) UpdatePriceList(context context.Context, callerID uint, dto Cr
 			to2 := util.ClearYear(item2.DateTo)
 
 			if !from.After(to2) && !from2.After(to) {
-				util.TEL.Eventf("price rules at index %d and %d conflict (no intersections allowed)", nil, i, j)
+				util.TEL.Error("price rules conflict (no intersections allowed)", nil, "item1", i, "item2", j)
 				return nil, ErrBadRequestCustom(fmt.Sprintf("price rules at index %d and %d conflict (no intersections allowed)", i, j))
 			}
 		}
@@ -480,7 +480,7 @@ func (s *service) UpdatePriceList(context context.Context, callerID uint, dto Cr
 
 	err = s.priceRepo.CreateList(&newList)
 	if err != nil {
-		util.TEL.Eventf("could not create price list in db", err)
+		util.TEL.Error("could not create price list in db", err)
 		return nil, err
 	}
 
@@ -488,13 +488,15 @@ func (s *service) UpdatePriceList(context context.Context, callerID uint, dto Cr
 }
 
 func (s *service) ClearYear(context context.Context, dateFrom time.Time, dateTo time.Time) (time.Time, time.Time) {
+	util.TEL.Debug("Clearing year from date range", "from", dateFrom, "to", dateTo)
 	dateFrom = util.ClearYear(dateFrom)
 	dateTo = util.ClearYear(dateTo)
+	util.TEL.Debug("Resulting date range", "from", dateFrom, "to", dateTo)
 	return dateFrom, dateTo
 }
 
 func (s *service) CalculatePriceForOneDay(context context.Context, day time.Time, guests uint, rules RoomPriceList) float32 {
-	util.TEL.Eventf("calculating price for one day", nil)
+	util.TEL.Info("calculating price for one day", "day", day, "guests", guests, "room_id", rules.RoomID, "pricelist_id", rules.ID)
 
 	normalizedDay := util.ClearYear(day)
 	price := rules.BasePrice
@@ -506,19 +508,19 @@ func (s *service) CalculatePriceForOneDay(context context.Context, day time.Time
 			price = rule.Price
 		}
 	}
-	util.TEL.Eventf("unit price for this day is %d", nil, price)
+	util.TEL.Debug("unit price for this day is", "price", price)
 
 	if rules.PerGuest {
-		util.TEL.Eventf("price is per guest", nil)
+		util.TEL.Debug("price is per guest")
 		return float32(price * guests)
 	}
 
-	util.TEL.Eventf("price is flat rate", nil)
+	util.TEL.Debug("price is flat rate")
 	return float32(price)
 }
 
 func (s *service) CalculatePrice(context context.Context, dateFrom time.Time, dateTo time.Time, guests uint, roomId uint) (float32, bool, error) {
-	util.TEL.Eventf("calculating price for a date range", nil)
+	util.TEL.Info("calculating price for a date range", "from", dateFrom, "to", dateTo, "guests", guests, "room_id", roomId)
 
 	rules, err := s.FindCurrentPriceListOfRoom(util.TEL.Ctx(), roomId)
 	if err != nil {
@@ -531,13 +533,13 @@ func (s *service) CalculatePrice(context context.Context, dateFrom time.Time, da
 	for day := dateFrom; !day.After(dateTo); day = day.Add(24 * time.Hour) {
 		totalPrice += s.CalculatePriceForOneDay(util.TEL.Ctx(), day, guests, *rules)
 	}
-	util.TEL.Eventf("total price is %f and is it per guest: %d", nil, totalPrice, rules.PerGuest)
+	util.TEL.Debug("result", "total_price", totalPrice, "price_is_per_guest", rules.PerGuest)
 
 	return totalPrice, rules.PerGuest, nil
 }
 
 func (s *service) IsRoomAvailableForOneDay(context context.Context, day time.Time, rules []RoomAvailabilityItem) bool {
-	util.TEL.Eventf("is the room available on a specific day", nil)
+	util.TEL.Info("is the room available on a specific day", "day", day)
 
 	leastRule := RoomAvailabilityItem{
 		DateFrom:  time.Time{}, // The zero value represents the earliest possible time
@@ -561,19 +563,19 @@ func (s *service) IsRoomAvailableForOneDay(context context.Context, day time.Tim
 }
 
 func (s *service) IsRoomAvailable(context context.Context, dateFrom time.Time, dateTo time.Time, roomId uint) bool {
-	util.TEL.Eventf("is the room available between multiple days", nil)
+	util.TEL.Info("is the room available between multiple days", "from", dateFrom, "to", dateTo, "room_id", roomId)
 
 	dateFrom, dateTo = s.ClearYear(util.TEL.Ctx(), dateFrom, dateTo)
 
 	rules, err := s.FindCurrentAvailabilityListOfRoom(util.TEL.Ctx(), roomId)
 	if err != nil {
-		util.TEL.Eventf("no availability list => room is unavailable", nil)
+		util.TEL.Debug("no availability list => room is unavailable")
 		return false
 	}
 
 	for day := dateFrom; !day.After(dateTo); day = day.Add(24 * time.Hour) {
 		if s.IsRoomAvailableForOneDay(util.TEL.Ctx(), day, rules.Items) == false {
-			util.TEL.Eventf("room is unavailable on day %s", nil, day.String())
+			util.TEL.Debug("room is unavailable on this day", "day", day)
 			return false
 		}
 	}
@@ -581,7 +583,7 @@ func (s *service) IsRoomAvailable(context context.Context, dateFrom time.Time, d
 }
 
 func (s *service) CalculateUnitPrice(context context.Context, perGuest bool, guestsNumber uint, dateFrom time.Time, dateTo time.Time, totalPrice float32) float32 {
-	util.TEL.Eventf("calculating unit price", nil)
+	util.TEL.Info("calculating unit price", "guests", guestsNumber, "per_guest", perGuest, "from", dateFrom, "to", dateTo, "total_price", totalPrice)
 
 	var unitPrice float32
 	interval := float32(dateTo.Sub(dateFrom).Hours()/24) + 1
@@ -592,7 +594,7 @@ func (s *service) CalculateUnitPrice(context context.Context, perGuest bool, gue
 		unitPrice = totalPrice / interval
 	}
 
-	util.TEL.Eventf("unit price is %f", nil, unitPrice)
+	util.TEL.Info("unit price is", "price", unitPrice)
 
 	return unitPrice
 }
@@ -632,7 +634,7 @@ func (s *service) PreparePaginatedResult(context context.Context, hits []RoomRes
 }
 
 func (s *service) FindAvailableRooms(context context.Context, dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error) {
-	util.TEL.Eventf("find available rooms from query %+v", nil, dto)
+	util.TEL.Info("find available rooms from query", "query", fmt.Sprintf("%+v", dto))
 
 	from := util.ClearYear(dto.DateFrom)
 	to := util.ClearYear(dto.DateTo)
@@ -641,13 +643,13 @@ func (s *service) FindAvailableRooms(context context.Context, dto RoomsQueryDTO)
 	defer util.TEL.Pop()
 
 	if from.After(to) {
-		util.TEL.Eventf("invalid date range %v > %v", nil, from, to)
+		util.TEL.Error("invalid date range", nil, "from", from, "to", to)
 		return nil, nil, ErrBadRequestCustom(fmt.Sprintf("invalid date range: %v > %v", from, to))
 	}
 
 	rooms, err := s.repo.FindByFilters(dto.GuestsNumber, strings.TrimSpace(dto.Address))
 	if err != nil {
-		util.TEL.Eventf("could not perform query", err)
+		util.TEL.Error("could not perform query", err)
 		return nil, nil, err
 	}
 
@@ -661,7 +663,7 @@ func (s *service) FindAvailableRooms(context context.Context, dto RoomsQueryDTO)
 		if canBook {
 			totalPrice, perGuest, err := s.CalculatePrice(util.TEL.Ctx(), from, to, dto.GuestsNumber, room.ID)
 			if err != nil {
-				util.TEL.Eventf("could not calculate price", err)
+				util.TEL.Error("could not calculate price", err)
 				continue
 			}
 			unitPrice := s.CalculateUnitPrice(util.TEL.Ctx(), perGuest, dto.GuestsNumber, from, to, totalPrice)
@@ -678,40 +680,40 @@ func (s *service) FindAvailableRooms(context context.Context, dto RoomsQueryDTO)
 }
 
 func (s *service) QueryForReservation(context context.Context, callerID uint, dto RoomReservationQueryDTO) (*RoomReservationQueryResponseDTO, error) {
-	util.TEL.Eventf("query room for reservation %d", nil, dto.RoomID)
+	util.TEL.Info("query room for reservation", "id", dto.RoomID)
 
 	util.TEL.Push(context, "validate-room-and-user")
 	defer util.TEL.Pop()
 
-	util.TEL.Eventf("check if user %d exists", nil, callerID)
+	util.TEL.Debug("check if user exists", "id", callerID)
 	caller, err := s.userClient.FindById(util.TEL.Ctx(), callerID)
 	if err != nil {
-		util.TEL.Eventf("user %d does not exist", err, callerID)
+		util.TEL.Error("user does not exist", err, "id", callerID)
 		return nil, err
 	}
 
-	util.TEL.Eventf("check if user %d is a guest", nil, callerID)
+	util.TEL.Debug("check if user is a guest", "id", callerID)
 	if caller.Role != string(util.Guest) {
-		util.TEL.Eventf("user has a bad role (%s)", nil, caller.Role)
+		util.TEL.Error("user has a bad role", nil, "role", caller.Role)
 		return nil, ErrUnauthorized
 	}
 
-	util.TEL.Eventf("find room", nil)
+	util.TEL.Debug("find room", "id", dto.RoomID)
 	// TODO: Should I push and pop here? and elsewhere where i call subfunc
 	room, err := s.FindById(util.TEL.Ctx(), dto.RoomID)
 	if err != nil {
-		util.TEL.Eventf("room not found %d", err, dto.RoomID)
+		util.TEL.Error("room not found", err, "id", dto.RoomID)
 		return nil, err
 	}
 
 	util.TEL.Push(context, "query")
 	defer util.TEL.Pop()
 
-	util.TEL.Eventf("find room availability", nil)
+	util.TEL.Debug("find room availability", "id", room.ID)
 	isAvailable := s.IsRoomAvailable(util.TEL.Ctx(), dto.DateFrom, dto.DateTo, room.ID)
 
 	if !isAvailable {
-		util.TEL.Eventf("room cannot be booked at this date range - returning early", nil)
+		util.TEL.Error("room cannot be booked at this date range - returning early", nil)
 
 		return &RoomReservationQueryResponseDTO{
 			Available: isAvailable,
@@ -719,7 +721,7 @@ func (s *service) QueryForReservation(context context.Context, callerID uint, dt
 		}, nil
 	}
 
-	util.TEL.Eventf("calculate price for this potential reservation", nil)
+	util.TEL.Debug("calculate price for this potential reservation")
 	fullPrice, _, err := s.CalculatePrice(util.TEL.Ctx(), dto.DateFrom, dto.DateTo, dto.GuestCount, room.ID)
 
 	if err != nil {
