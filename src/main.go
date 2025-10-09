@@ -13,6 +13,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -73,6 +74,7 @@ func main() {
 
 	server = gin.Default()
 
+	server.Use(internal.PrometheusMiddleware())
 	server.Use(otelgin.Middleware(os.Getenv("SERVICE_NAME")))
 	server.Use(util.TEL.GetLoggingMiddleware())
 	server.Use(cors.New(cors.Config{
@@ -84,6 +86,7 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	server.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	server.GET("/healthz", func(ctx *gin.Context) {
 		err := rawDB.Ping()
 		if err != nil {
