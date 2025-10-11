@@ -143,8 +143,8 @@ type MockReservationClient struct {
 	mock.Mock
 }
 
-func (r *MockReservationClient) GetActiveHostReservations(jwt string, roomIDs []uint) ([]reservationclient.ReservationDTO, error) {
-	args := r.Called(jwt, roomIDs)
+func (r *MockReservationClient) GetActiveHostReservations(ctx context.Context, jwt string, roomIDs []uint) ([]reservationclient.ReservationDTO, error) {
+	args := r.Called(ctx, jwt, roomIDs)
 	reservations, _ := args.Get(0).([]reservationclient.ReservationDTO)
 	return reservations, args.Error(1)
 }

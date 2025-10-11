@@ -384,27 +384,32 @@ func (h *Handler) findAvailableRooms(ctx *gin.Context) {
 }
 
 func (h *Handler) getActiveHostReservations(ctx *gin.Context) {
-	log.Printf("getActiveHostReservations called")
+	util.TEL.Push(ctx.Request.Context(), "get-active-host-reservations-api")
+	defer util.TEL.Pop()
 
 	jwt, err := util.GetJwt(ctx)
 	if err != nil {
+		util.TEL.Error("could not get JWT", err)
 		AbortError(ctx, ErrUnauthenticated)
 		return
 	}
 
-	if jwt.Role != userclient.Host {
+	if jwt.Role != util.Host {
+		util.TEL.Error("user is not host", nil, "role", jwt.Role)
 		AbortError(ctx, ErrUnauthorized)
 		return
 	}
 
 	jwtString, err := util.GetJwtString(ctx)
 	if err != nil {
+		util.TEL.Error("could not get JWT", err)
 		AbortError(ctx, ErrUnauthenticated)
 		return
 	}
 
-	reservations, err := h.service.GetActiveHostReservations(jwt.ID, jwtString)
+	reservations, err := h.service.GetActiveHostReservations(ctx, jwt.ID, jwtString)
 	if err != nil {
+		util.TEL.Error("failed to get active host reservations", err)
 		AbortError(ctx, err)
 		return
 	}

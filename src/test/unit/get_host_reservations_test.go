@@ -3,6 +3,7 @@ package test
 import (
 	reservationClient "bookem-room-service/client/reservationclient"
 	"bookem-room-service/internal"
+	"context"
 	"errors"
 	"testing"
 
@@ -16,9 +17,9 @@ func Test_GetActiveHostReservations_UserNotFound(t *testing.T) {
 	host := DefaultUser_Host
 	jwt := "token"
 
-	mockUserClient.On("FindById", host.Id).Return(nil, errors.New("User is not found"))
+	mockUserClient.On("FindById", context.Background(), host.Id).Return(nil, errors.New("User is not found"))
 
-	reservations, err := svc.GetActiveHostReservations(host.Id, jwt)
+	reservations, err := svc.GetActiveHostReservations(context.Background(), host.Id, jwt)
 
 	assert.Error(t, err)
 	assert.Nil(t, reservations)
@@ -34,10 +35,10 @@ func Test_GetActiveHostReservations_FindRoomsError(t *testing.T) {
 	host := DefaultUser_Host
 	jwt := "token"
 
-	mockUserClient.On("FindById", host.Id).Return(host, nil)
+	mockUserClient.On("FindById", context.Background(), host.Id).Return(host, nil)
 	mockRepo.On("FindByHost", host.Id).Return(nil, errors.New("Rooms are not found"))
 
-	reservations, err := svc.GetActiveHostReservations(host.Id, jwt)
+	reservations, err := svc.GetActiveHostReservations(context.Background(), host.Id, jwt)
 
 	assert.Error(t, err)
 	assert.Nil(t, reservations)
@@ -56,11 +57,11 @@ func Test_GetActiveHostReservations_NoRoomsSuccess(t *testing.T) {
 	jwt := "token"
 	rooms := []internal.Room{}
 
-	mockUserClient.On("FindById", host.Id).Return(host, nil)
+	mockUserClient.On("FindById", context.Background(), host.Id).Return(host, nil)
 	mockRepo.On("FindByHost", host.Id).Return(rooms, nil)
-	mockReservationClient.On("GetActiveHostReservations", jwt, mock.Anything).Return(nil, nil)
+	mockReservationClient.On("GetActiveHostReservations", context.Background(), jwt, mock.Anything).Return(nil, nil)
 
-	reservations, err := svc.GetActiveHostReservations(host.Id, jwt)
+	reservations, err := svc.GetActiveHostReservations(context.Background(), host.Id, jwt)
 
 	assert.NoError(t, err)
 	assert.Nil(t, reservations)
@@ -86,11 +87,11 @@ func Test_GetActiveHostReservations_FoundRoomsNotFoundReservations(t *testing.T)
 	rooms := []internal.Room{*room1, *room2, *room3}
 	roomIds := []uint{room1.ID, room2.ID, room3.ID}
 
-	mockUserClient.On("FindById", host.Id).Return(host, nil)
+	mockUserClient.On("FindById", context.Background(), host.Id).Return(host, nil)
 	mockRepo.On("FindByHost", host.Id).Return(rooms, nil)
-	mockReservationClient.On("GetActiveHostReservations", jwt, roomIds).Return(nil, nil)
+	mockReservationClient.On("GetActiveHostReservations", context.Background(), jwt, roomIds).Return(nil, nil)
 
-	reservations, err := svc.GetActiveHostReservations(host.Id, jwt)
+	reservations, err := svc.GetActiveHostReservations(context.Background(), host.Id, jwt)
 
 	assert.NoError(t, err)
 	assert.Nil(t, reservations)
@@ -109,11 +110,11 @@ func Test_GetActiveHostReservations_ReservationsErr(t *testing.T) {
 	jwt := "token"
 	rooms := []internal.Room{}
 
-	mockUserClient.On("FindById", host.Id).Return(host, nil)
+	mockUserClient.On("FindById", context.Background(), host.Id).Return(host, nil)
 	mockRepo.On("FindByHost", host.Id).Return(rooms, nil)
-	mockReservationClient.On("GetActiveHostReservations", jwt, mock.Anything).Return(nil, errors.New("Reservations db error"))
+	mockReservationClient.On("GetActiveHostReservations", context.Background(), jwt, mock.Anything).Return(nil, errors.New("Reservations db error"))
 
-	reservations, err := svc.GetActiveHostReservations(host.Id, jwt)
+	reservations, err := svc.GetActiveHostReservations(context.Background(), host.Id, jwt)
 
 	assert.Error(t, err)
 	assert.Nil(t, reservations)
@@ -143,11 +144,11 @@ func Test_GetActiveHostReservations_Success(t *testing.T) {
 	reservartion3 := DefaultReservationDTO
 	reservations := []reservationClient.ReservationDTO{*reservartion1, *reservartion2, *reservartion3}
 
-	mockUserClient.On("FindById", host.Id).Return(host, nil)
+	mockUserClient.On("FindById", context.Background(), host.Id).Return(host, nil)
 	mockRepo.On("FindByHost", host.Id).Return(rooms, nil)
-	mockReservationClient.On("GetActiveHostReservations", jwt, roomIds).Return(reservations, nil)
+	mockReservationClient.On("GetActiveHostReservations", context.Background(), jwt, roomIds).Return(reservations, nil)
 
-	reservationsGot, err := svc.GetActiveHostReservations(host.Id, jwt)
+	reservationsGot, err := svc.GetActiveHostReservations(context.Background(), host.Id, jwt)
 
 	assert.NoError(t, err)
 	assert.Equal(t, reservations, reservationsGot)

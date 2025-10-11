@@ -742,10 +742,10 @@ func (s *service) QueryForReservation(context context.Context, callerID uint, dt
 	}, nil
 }
 
-func (s *service) GetActiveHostReservations(hostID uint, jwt string) ([]reservationclient.ReservationDTO, error) {
+func (s *service) GetActiveHostReservations(ctx context.Context, hostID uint, jwt string) ([]reservationclient.ReservationDTO, error) {
 	log.Print("GetActiveHostReservations [1] User must be host")
 
-	_, err := s.userClient.FindById(hostID)
+	_, err := s.userClient.FindById(ctx, hostID)
 	if err != nil {
 		return nil, ErrNotFound("user", hostID)
 	}
@@ -765,7 +765,7 @@ func (s *service) GetActiveHostReservations(hostID uint, jwt string) ([]reservat
 	}
 
 	log.Print("GetActiveHostReservations [3] Fetch reservations")
-	reservations, err := s.reservationClient.GetActiveHostReservations(jwt, roomIDs)
+	reservations, err := s.reservationClient.GetActiveHostReservations(ctx, jwt, roomIDs)
 
 	if err != nil {
 		return nil, err
