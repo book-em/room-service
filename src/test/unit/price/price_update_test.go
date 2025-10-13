@@ -13,7 +13,7 @@ import (
 )
 
 func Test_UpdatePriceList_Success(t *testing.T) {
-	svc, mockRepo, _, mockPriceRepo, mockUserClient, _ := CreateTestRoomService()
+	svc, mockRepo, _, mockPriceRepo, mockUserClient := CreateTestRoomService()
 
 	dto := DefaultCreatePriceListDTO
 	user := DefaultUser_Host
@@ -34,7 +34,7 @@ func Test_UpdatePriceList_Success(t *testing.T) {
 }
 
 func Test_UpdatePriceList_UserNotFound(t *testing.T) {
-	svc, _, _, _, mockUserClient, _ := CreateTestRoomService()
+	svc, _, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := DefaultCreatePriceListDTO
 	hostID := uint(1234)
@@ -49,7 +49,7 @@ func Test_UpdatePriceList_UserNotFound(t *testing.T) {
 }
 
 func Test_UpdatePriceList_UserNotHost(t *testing.T) {
-	svc, _, _, _, mockUserClient, _ := CreateTestRoomService()
+	svc, _, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := DefaultCreatePriceListDTO
 	user := DefaultUser_Guest
@@ -64,7 +64,7 @@ func Test_UpdatePriceList_UserNotHost(t *testing.T) {
 }
 
 func Test_UpdatePriceList_RoomNotFound(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := DefaultCreatePriceListDTO
 	user := DefaultUser_Host
@@ -81,7 +81,7 @@ func Test_UpdatePriceList_RoomNotFound(t *testing.T) {
 }
 
 func Test_UpdatePriceList_HostNotOwnRoom(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := DefaultCreatePriceListDTO
 	user := DefaultUser_Host
@@ -100,7 +100,7 @@ func Test_UpdatePriceList_HostNotOwnRoom(t *testing.T) {
 }
 
 func Test_UpdatePriceList_BadDateRange(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := internal.CreateRoomPriceListDTO{
 		RoomID: DefaultRoom.ID,
@@ -129,7 +129,7 @@ func Test_UpdatePriceList_BadDateRange(t *testing.T) {
 }
 
 func Test_UpdatePriceList_IntersectingDateRange(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := internal.CreateRoomPriceListDTO{
 		RoomID: DefaultRoom.ID,
@@ -163,7 +163,7 @@ func Test_UpdatePriceList_IntersectingDateRange(t *testing.T) {
 }
 
 func Test_UpdatePriceList_TouchingDateRange(t *testing.T) {
-	svc, mockRepo, _, _, mockUserClient, _ := CreateTestRoomService()
+	svc, mockRepo, _, _, mockUserClient := CreateTestRoomService()
 
 	dto := internal.CreateRoomPriceListDTO{
 		RoomID: DefaultRoom.ID,

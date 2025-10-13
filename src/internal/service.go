@@ -1,12 +1,10 @@
 package internal
 
 import (
-	"bookem-room-service/client/reservationclient"
 	"bookem-room-service/client/userclient"
 	"bookem-room-service/util"
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"strings"
 	"time"
@@ -53,27 +51,21 @@ type Service interface {
 	PreparePaginatedResult(context context.Context, hits []RoomResultDTO, pageNumber uint, pageSize uint) ([]RoomResultDTO, PaginatedResultInfoDTO)
 
 	QueryForReservation(context context.Context, callerID uint, dto RoomReservationQueryDTO) (*RoomReservationQueryResponseDTO, error)
-
-	// GetActiveHostReservations checks whether a host has any active reservations
-	// now or in the future.
-	GetActiveHostReservations(context context.Context, hostID uint, jwt string) ([]reservationclient.ReservationDTO, error)
 }
 
 type service struct {
-	repo              Repository
-	availabiltyRepo   RoomAvailabilityRepo
-	priceRepo         RoomPriceRepo
-	userClient        userclient.UserClient
-	reservationClient reservationclient.ReservationClient
+	repo            Repository
+	availabiltyRepo RoomAvailabilityRepo
+	priceRepo       RoomPriceRepo
+	userClient      userclient.UserClient
 }
 
 func NewService(
 	roomRepo Repository,
 	availabiltyRepo RoomAvailabilityRepo,
 	priceRepo RoomPriceRepo,
-	userClient userclient.UserClient,
-	reservationClient reservationclient.ReservationClient) Service {
-	return &service{roomRepo, availabiltyRepo, priceRepo, userClient, reservationClient}
+	userClient userclient.UserClient) Service {
+	return &service{roomRepo, availabiltyRepo, priceRepo, userClient}
 }
 
 func (s *service) Create(context context.Context, callerID uint, dto CreateRoomDTO) (*Room, error) {
@@ -740,38 +732,4 @@ func (s *service) QueryForReservation(context context.Context, callerID uint, dt
 		Available: isAvailable,
 		TotalCost: uint(fullPrice), // TODO: Remove this cast once CalculatePrice returns uint.
 	}, nil
-}
-
-func (s *service) GetActiveHostReservations(ctx context.Context, hostID uint, jwt string) ([]reservationclient.ReservationDTO, error) {
-	log.Print("GetActiveHostReservations [1] User must be host")
-
-	_, err := s.userClient.FindById(ctx, hostID)
-	if err != nil {
-		return nil, ErrNotFound("user", hostID)
-	}
-
-	log.Print("GetActiveHostReservations [2] Fetch host rooms")
-
-	rooms, err := s.repo.FindByHost(hostID)
-
-	if err != nil {
-		log.Printf("%s", err.Error())
-		return nil, ErrNotFound("rooms of host", hostID)
-	}
-
-	var roomIDs []uint
-	for _, room := range rooms {
-		roomIDs = append(roomIDs, room.ID)
-	}
-
-	log.Print("GetActiveHostReservations [3] Fetch reservations")
-	reservations, err := s.reservationClient.GetActiveHostReservations(ctx, jwt, roomIDs)
-
-	if err != nil {
-		return nil, err
-	}
-
-	log.Print("GetActiveHostReservations [4] Return")
-
-	return reservations, nil
 }
