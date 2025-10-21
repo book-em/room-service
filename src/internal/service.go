@@ -113,6 +113,7 @@ func (s *service) Create(context context.Context, callerID uint, dto CreateRoomD
 		MaxGuests:   dto.MaxGuests,
 		Photos:      []string{},
 		Commodities: dto.Commodities,
+		AutoApprove: dto.AutoApprove,
 	}
 
 	err = s.repo.Create(room)
