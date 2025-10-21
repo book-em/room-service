@@ -22,6 +22,7 @@ type Room struct {
 	// PriceListID refers to the latest list of prices of the room.
 	// If there is no price list, then this is `nil`.
 	PriceListID *uint
+	AutoApprove bool `gorm:"not null;default:false"`
 }
 
 // RoomAvailabilityList is a list of dates when a specific room is available for booking.
