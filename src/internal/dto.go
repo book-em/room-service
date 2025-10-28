@@ -13,6 +13,7 @@ type RoomDTO struct {
 	Photos      []string `json:"photos"`
 	Commodities []string `json:"commodities"`
 	AutoApprove bool     `json:"autoApprove"`
+	Deleted     bool     `json:"deleted"`
 }
 
 type CreateRoomDTO struct {
@@ -25,6 +26,7 @@ type CreateRoomDTO struct {
 	PhotosPayload []string `json:"photosPayload"`
 	Commodities   []string `json:"commodities"`
 	AutoApprove   bool     `json:"autoApprove"`
+	Deleted       bool     `json:"deleted"`
 }
 
 func NewRoomDTO(r *Room) RoomDTO {
@@ -39,6 +41,7 @@ func NewRoomDTO(r *Room) RoomDTO {
 		Photos:      r.Photos,
 		Commodities: r.Commodities,
 		AutoApprove: r.AutoApprove,
+		Deleted:     r.Deleted,
 	}
 }
 
