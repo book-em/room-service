@@ -15,6 +15,7 @@ type Service interface {
 	FindById(context context.Context, id uint) (*Room, error)
 	FindByHost(context context.Context, hostId uint) ([]Room, error)
 	FindAvailableRooms(context context.Context, dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error)
+	DeleteRoomsByHostId(context context.Context, hostId uint) ([]Room, error)
 
 	FindAvailabilityListById(context context.Context, id uint) (*RoomAvailabilityList, error)
 	FindAvailabilityListsByRoomId(context context.Context, roomId uint) ([]RoomAvailabilityList, error)
@@ -114,6 +115,7 @@ func (s *service) Create(context context.Context, callerID uint, dto CreateRoomD
 		Photos:      []string{},
 		Commodities: dto.Commodities,
 		AutoApprove: dto.AutoApprove,
+		Deleted:     dto.Deleted,
 	}
 
 	err = s.repo.Create(room)
@@ -733,4 +735,63 @@ func (s *service) QueryForReservation(context context.Context, callerID uint, dt
 		Available: isAvailable,
 		TotalCost: uint(fullPrice), // TODO: Remove this cast once CalculatePrice returns uint.
 	}, nil
+}
+
+func (s *service) DeleteRoomsByHostId(context context.Context, hostId uint) ([]Room, error) {
+	util.TEL.Info("delete rooms owned by host", "host_id", hostId)
+
+	util.TEL.Push(context, "validate-user")
+	defer util.TEL.Pop()
+
+	// Check if user exists.
+
+	util.TEL.Debug("check if user exists", "id", hostId)
+	host, err := s.userClient.FindById(util.TEL.Ctx(), hostId)
+	if err != nil {
+		util.TEL.Error("user does not exist", err, "id", hostId)
+		return nil, ErrNotFound("host", hostId)
+	}
+
+	// Check if user is host.
+
+	util.TEL.Debug("check if user is a host", "id", hostId)
+	if host.Role != string(util.Host) {
+		util.TEL.Error("user has a bad role", nil, "role", host.Role)
+		return nil, ErrUnauthorized
+	}
+
+	// Fetch rooms.
+
+	util.TEL.Push(context, "find-rooms-in-db")
+	defer util.TEL.Pop()
+
+	rooms, err := s.repo.FindByHost(hostId)
+	if err != nil {
+		util.TEL.Error("could not find rooms by host due db errors", err)
+		return nil, err
+	}
+	if len(rooms) == 0 {
+		return rooms, nil
+	}
+
+	// Delete rooms.
+
+	util.TEL.Push(context, "delete-rooms-in-db")
+	defer util.TEL.Pop()
+
+	err = s.repo.DeleteRoomsByHostId(hostId)
+	if err != nil {
+		util.TEL.Error("could not delete rooms by host", err)
+		return nil, err
+	}
+
+	// Refetch rooms after deletion.
+
+	rooms, err = s.repo.FindByHost(hostId)
+	if err != nil {
+		util.TEL.Error("could not re-fetch rooms after deletion", err)
+		return nil, err
+	}
+
+	return rooms, nil
 }
