@@ -16,6 +16,7 @@ func (r *Route) Route(rg *gin.RouterGroup) {
 	rg.POST("/new", r.handler.createRoom)
 	rg.GET("/:id", r.handler.findRoomById)
 	rg.GET("/host/:id", r.handler.findRoomsByHostId)
+	rg.DELETE("/host/", r.handler.deleteHostRooms)
 	rg.GET("/all", r.handler.findAvailableRooms)
 
 	rg.GET("/available/room/:id", r.handler.findCurrentAvailabilityListOfRoom)
@@ -379,4 +380,37 @@ func (h *Handler) findAvailableRooms(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, NewRoomsResultDTO(rooms, *resultInfo))
+}
+
+func (h *Handler) deleteHostRooms(ctx *gin.Context) {
+	util.TEL.Push(ctx.Request.Context(), "delete-rooms-by-host-id-api")
+	defer util.TEL.Pop()
+
+	jwt, err := util.GetJwt(ctx)
+	if err != nil {
+		util.TEL.Error("could not get JWT", err)
+		AbortError(ctx, ErrUnauthenticated)
+		return
+	}
+
+	if jwt.Role != util.Host {
+		util.TEL.Error("user is not host", nil, "role", jwt.Role)
+		AbortError(ctx, ErrUnauthorized)
+		return
+	}
+
+	rooms, err := h.service.DeleteRoomsByHostId(util.TEL.Ctx(), jwt.ID)
+	if err != nil {
+		util.TEL.Error("could not delete rooms by host", err, "host_id", jwt.ID)
+		AbortError(ctx, err)
+		return
+	}
+
+	util.TEL.Debug("creating json output with rooms", "count", len(rooms))
+	result := make([]RoomDTO, 0)
+	for _, room := range rooms {
+		result = append(result, NewRoomDTO(&room))
+	}
+
+	ctx.JSON(http.StatusOK, result)
 }
