@@ -37,3 +37,20 @@ func Test_FindById_NotFound(t *testing.T) {
 	mockRepo.AssertNumberOfCalls(t, "FindById", 1)
 	mockRepo.AssertExpectations(t)
 }
+
+func Test_FindById_Deleted(t *testing.T) {
+	svc, mockRepo, _, _, _ := CreateTestRoomService()
+
+	roomVal := *DefaultRoom
+	room := &roomVal
+	room.Deleted = true
+
+	mockRepo.On("FindById", room.ID).Return(room, nil)
+
+	roomGot, err := svc.FindById(context.Background(), room.ID)
+
+	assert.Error(t, err)
+	assert.Nil(t, roomGot)
+	mockRepo.AssertNumberOfCalls(t, "FindById", 1)
+	mockRepo.AssertExpectations(t)
+}
