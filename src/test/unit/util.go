@@ -64,6 +64,11 @@ func (r *MockRoomRepo) FindByFilters(guestsNumber uint, location string) ([]inte
 	return rooms, args.Error(1)
 }
 
+func (r *MockRoomRepo) DeleteRoomsByHostId(hostId uint) error {
+	args := r.Called(uint(hostId))
+	return args.Error(0)
+}
+
 // ----------------------------------------------- Mock room availabilty repo
 
 type MockRoomAvailabilityRepo struct {
@@ -151,6 +156,7 @@ var DefaultRoom = &internal.Room{
 	MaxGuests:   5,
 	Photos:      []string{"test.png"},
 	Commodities: []string{"WiFi"},
+	Deleted:     false,
 }
 
 var DefaultRoomDTO = internal.RoomDTO{
@@ -162,6 +168,7 @@ var DefaultRoomDTO = internal.RoomDTO{
 	MaxGuests:   DefaultRoom.MaxGuests,
 	Photos:      DefaultRoom.Photos,
 	Commodities: DefaultRoom.Commodities,
+	Deleted:     DefaultRoom.Deleted,
 }
 
 var DefaultRoomCreateDTO = internal.CreateRoomDTO{
@@ -173,6 +180,7 @@ var DefaultRoomCreateDTO = internal.CreateRoomDTO{
 	MaxGuests:     DefaultRoom.MaxGuests,
 	PhotosPayload: []string{SMALL_IMG},
 	Commodities:   DefaultRoom.Commodities,
+	Deleted:       DefaultRoom.Deleted,
 }
 
 var DefaultUser_Guest = &userclient.UserDTO{
