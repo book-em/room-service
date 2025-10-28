@@ -695,3 +695,33 @@ func Test_FindAvailableRooms_Success(t *testing.T) {
 	mockRepo.AssertNumberOfCalls(t, "FindByFilters", 4)
 	mockRepo.AssertExpectations(t)
 }
+
+func Test_ExcludeDeletedRooms_Success(t *testing.T) {
+	svc, _, _, _, _ := CreateTestRoomService()
+
+	rooms := []internal.Room{}
+	room1 := internal.Room{
+		ID:        1,
+		HostID:    1,
+		Name:      "room1",
+		Address:   "address1",
+		MinGuests: 2,
+		MaxGuests: 5,
+		Deleted:   false,
+	}
+	room2 := internal.Room{
+		ID:        2,
+		HostID:    2,
+		Name:      "room2",
+		Address:   "address2",
+		MinGuests: 1,
+		MaxGuests: 4,
+		Deleted:   true,
+	}
+	rooms = append(rooms, room1, room2)
+
+	roomsGot := svc.ExcludeDeletedRooms(context.Background(), rooms)
+
+	assert.Equal(t, 1, len(roomsGot))
+	assert.Equal(t, room1, roomsGot[0])
+}
