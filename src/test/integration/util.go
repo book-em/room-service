@@ -347,3 +347,14 @@ func setupRooms(quantity int) {
 		createRoomPriceList(jwt, room)
 	}
 }
+
+func deleteRoomsByHostId(jwt string) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%shost/", url_room), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+jwt)
+	return http.DefaultClient.Do(req)
+}
