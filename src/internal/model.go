@@ -23,6 +23,7 @@ type Room struct {
 	// If there is no price list, then this is `nil`.
 	PriceListID *uint
 	AutoApprove bool `gorm:"not null;default:false"`
+	Deleted     bool `json:"deleted"  gorm:"type:boolean;not null;default:false"`
 }
 
 // RoomAvailabilityList is a list of dates when a specific room is available for booking.
