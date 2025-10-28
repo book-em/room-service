@@ -52,6 +52,8 @@ type Service interface {
 	PreparePaginatedResult(context context.Context, hits []RoomResultDTO, pageNumber uint, pageSize uint) ([]RoomResultDTO, PaginatedResultInfoDTO)
 
 	QueryForReservation(context context.Context, callerID uint, dto RoomReservationQueryDTO) (*RoomReservationQueryResponseDTO, error)
+
+	ExcludeDeletedRooms(context context.Context, rooms []Room) []Room
 }
 
 type service struct {
@@ -168,6 +170,12 @@ func (s *service) FindById(context context.Context, id uint) (*Room, error) {
 		util.TEL.Error("room not found", err, "id", id)
 		return nil, ErrNotFound("room", id)
 	}
+
+	if room.Deleted {
+		util.TEL.Error("room is deleted", err, "id", id)
+		return nil, ErrNotFound("room", id)
+	}
+
 	return room, nil
 }
 
@@ -636,6 +644,19 @@ func (s *service) PreparePaginatedResult(context context.Context, hits []RoomRes
 	return hits, resultInfo
 }
 
+func (s *service) ExcludeDeletedRooms(context context.Context, rooms []Room) []Room {
+	util.TEL.Push(context, "filter out deleted rooms")
+	defer util.TEL.Pop()
+
+	var notDeletedRooms []Room
+	for _, room := range rooms {
+		if !room.Deleted {
+			notDeletedRooms = append(notDeletedRooms, room)
+		}
+	}
+	return notDeletedRooms
+}
+
 func (s *service) FindAvailableRooms(context context.Context, dto RoomsQueryDTO) ([]RoomResultDTO, *PaginatedResultInfoDTO, error) {
 	util.TEL.Info("find available rooms from query", "query", fmt.Sprintf("%+v", dto))
 
@@ -655,6 +676,8 @@ func (s *service) FindAvailableRooms(context context.Context, dto RoomsQueryDTO)
 		util.TEL.Error("could not perform query", err)
 		return nil, nil, err
 	}
+
+	rooms = s.ExcludeDeletedRooms(context, rooms)
 
 	util.TEL.Push(context, "get price for each hit")
 	defer util.TEL.Pop()
