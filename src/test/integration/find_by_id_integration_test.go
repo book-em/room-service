@@ -40,3 +40,25 @@ func TestIntegration_FindById_MissingId(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
+
+func TestIntegration_FindById_Deleted(t *testing.T) {
+	cleanup("room")
+	cleanup("user")
+
+	registerUser("user2", "1234", util.Host)
+	jwt := loginUser2("user2", "1234")
+	jwtObj, _ := util.GetJwtFromString(jwt)
+
+	roomCreateDTO := test.DefaultRoomCreateDTO
+	roomCreateDTO.HostID = jwtObj.ID
+	roomCreateDTO.Deleted = true
+
+	resp, _ := createRoom(jwt, roomCreateDTO)
+	room := responseToRoom(resp)
+
+	roomId := room.ID
+
+	resp, err := findRoomById(roomId)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
